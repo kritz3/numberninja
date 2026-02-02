@@ -1,0 +1,1481 @@
+<!doctype html>
+<html lang="af">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Storie Avontuur</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111a2e;
+      --text: #eaf0ff;
+      --muted: #9fb0d0;
+      --good: #2dd4bf;
+      --bad: #fb7185;
+      --warn: #fbbf24;
+      --btn: #1f2a44;
+      --btnHover: #283658;
+      --shadow: rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 10%, #1a2a55 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .wrap {
+      width: min(600px, 100%);
+      display: grid;
+      gap: 14px;
+    }
+
+    .card {
+      background: rgba(17,26,46,0.82);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 14px 40px var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .stat {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stat-icon { font-size: 18px; }
+    .stat-value { font-weight: 700; }
+
+    .inventory {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 16px;
+      min-height: 36px;
+    }
+    .item {
+      background: rgba(252,211,77,0.15);
+      border: 1px solid rgba(252,211,77,0.3);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .story-image {
+      font-size: 64px;
+      text-align: center;
+      margin: 16px 0;
+      line-height: 1;
+    }
+
+    .story-text {
+      font-size: 18px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      text-align: center;
+      min-height: 80px;
+    }
+    .story-text.young {
+      font-size: 22px;
+      line-height: 1.8;
+    }
+
+    .choices {
+      display: grid;
+      gap: 10px;
+    }
+    .choice-btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--btn);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.15s;
+    }
+    .choice-btn:hover {
+      background: var(--btnHover);
+      transform: translateY(-2px);
+    }
+    .choice-btn:active {
+      transform: scale(0.98);
+    }
+    .choice-btn.young {
+      font-size: 20px;
+      padding: 18px 22px;
+    }
+
+    .setup-section {
+      margin-bottom: 20px;
+    }
+    .setup-label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .setup-options {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .setup-btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--btn);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .setup-btn:hover { background: var(--btnHover); }
+    .setup-btn.selected {
+      background: rgba(45,212,191,0.2);
+      border-color: rgba(45,212,191,0.4);
+      color: var(--good);
+    }
+    .setup-btn .emoji {
+      display: block;
+      font-size: 32px;
+      margin-bottom: 6px;
+    }
+
+    .start-btn {
+      appearance: none;
+      border: 1px solid rgba(45,212,191,0.35);
+      background: rgba(45,212,191,0.18);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+      touch-action: manipulation;
+    }
+    .start-btn:hover { background: rgba(45,212,191,0.25); }
+    .start-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .result {
+      text-align: center;
+    }
+    .result-title {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+    .result-emoji {
+      font-size: 80px;
+      margin: 20px 0;
+    }
+    .result-text {
+      font-size: 18px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .hidden { display: none !important; }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .footer a {
+      color: var(--good);
+      text-decoration: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .pulse {
+      animation: pulse 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="setupScreen">
+      <div class="title">Storie Avontuur</div>
+      <div class="subtitle">Kies jou avontuur!</div>
+
+      <div class="setup-section">
+        <div class="setup-label">Wie speel?</div>
+        <div class="setup-options" id="ageSelect">
+          <button class="setup-btn" data-age="young">
+            <span class="emoji">🧒</span>
+            Jonger (6)
+          </button>
+          <button class="setup-btn" data-age="older">
+            <span class="emoji">🧑</span>
+            Ouer (8+)
+          </button>
+        </div>
+      </div>
+
+      <div class="setup-section">
+        <div class="setup-label">Kies 'n storie</div>
+        <div class="setup-options" id="storySelect">
+          <button class="setup-btn" data-story="dragon">
+            <span class="emoji">🐉</span>
+            Draak Avontuur
+          </button>
+          <button class="setup-btn" data-story="space">
+            <span class="emoji">🚀</span>
+            Ruimte Sending
+          </button>
+          <button class="setup-btn" data-story="pirate">
+            <span class="emoji">🏴‍☠️</span>
+            Seerower Skat
+          </button>
+          <button class="setup-btn" data-story="jungle">
+            <span class="emoji">🌴</span>
+            Oerwoud Ontdekker
+          </button>
+        </div>
+      </div>
+
+      <button class="start-btn" id="startBtn" disabled>Begin Avontuur!</button>
+    </div>
+
+    <div class="card hidden" id="gameScreen">
+      <div class="stats-bar" id="statsBar">
+        <div class="stat">
+          <span class="stat-icon">❤️</span>
+          <span class="stat-value" id="health">3</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon">⭐</span>
+          <span class="stat-value" id="points">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon">🎯</span>
+          <span class="stat-value" id="chapter">1</span>
+        </div>
+      </div>
+
+      <div class="inventory" id="inventory"></div>
+
+      <div class="story-image" id="storyImage">🏰</div>
+      <div class="story-text" id="storyText">Laai...</div>
+
+      <div class="choices" id="choices"></div>
+    </div>
+
+    <div class="card hidden" id="resultScreen">
+      <div class="result">
+        <div class="result-emoji" id="resultEmoji">🎉</div>
+        <div class="result-title" id="resultTitle">Die Einde!</div>
+        <div class="result-text" id="resultText">Jy het die avontuur voltooi!</div>
+        <button class="start-btn" id="playAgainBtn">Speel Weer</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <a href="index.html">Number Ninja</a> · <a href="snake.html">Snake</a> · <a href="adventure.html">English</a>
+    </div>
+  </div>
+
+  <script>
+    const STORIES = {
+      dragon: {
+        title: "Draak Avontuur",
+        scenes: {
+          start: {
+            image: "🏰",
+            text: {
+              young: "Jy woon in 'n kasteel. Eendag land 'n vriendelike draak in die tuin! Wat doen jy?",
+              older: "Jy is 'n jong ridder wat in 'n vreedsame kasteel woon. Een oggend word jy wakker en vind 'n pragtige draak in die koninklike tuin. Die wagte is bang, maar die draak lyk... vriendelik? Wat doen jy?"
+            },
+            choices: [
+              { text: { young: "Sê hallo vir die draak", older: "Stap versigtig nader en groet die draak" }, next: "friend", points: 10 },
+              { text: { young: "Wegkruip onder jou bed", older: "Wegkruip en kyk deur jou venster" }, next: "hide", points: 0 },
+              { text: { young: "Bring vir die draak kos", older: "Gaan haal kos uit die kombuis vir die draak" }, next: "food", points: 15, item: "draak peuselhappie" }
+            ]
+          },
+          friend: {
+            image: "🐉",
+            text: {
+              young: "Die draak glimlag! Hy wil jou iets wys. Hy wys na 'n berg ver weg.",
+              older: "Die draak buig sy kop ter begroeting! Hy lyk opgewonde en kyk heeltyd na die verre berge. Hy stoot jou saggies, asof hy vra dat jy moet volg."
+            },
+            choices: [
+              { text: { young: "Klim op die draak se rug", older: "Aanvaar die uitnodiging en klim op die draak se rug" }, next: "fly", points: 20, item: "draak skub" },
+              { text: { young: "Vra wat is op die berg", older: "Probeer kommunikeer en vra wat op die berg is" }, next: "ask", points: 10 }
+            ]
+          },
+          hide: {
+            image: "🛏️",
+            text: {
+              young: "Jy kruip weg, maar dan hoor jy die draak huil! Hy klink hartseer en verlore.",
+              older: "Vanuit jou wegkruipplek hoor jy 'n vreemde geluid. Die draak maak sagte, hartseer geluide. Hy lyk verlore en alleen, ver van die huis af."
+            },
+            choices: [
+              { text: { young: "Gaan help die hartseer draak", older: "Oorkom jou vrees en gaan help die draak" }, next: "friend", points: 15 },
+              { text: { young: "Vertel 'n wag van die draak", older: "Roep die wagte om die draak te help" }, next: "guards", points: 5 }
+            ]
+          },
+          food: {
+            image: "🍖",
+            text: {
+              young: "Die draak is mal oor die kos! Hy doen 'n vreugde dansie en word jou beste vriend!",
+              older: "Die draak se oë blink toe hy die kos sien! Hy eet gelukkig en dan druk hy teen jou. Jy het 'n kragtige vriend gemaak!"
+            },
+            choices: [
+              { text: { young: "Vra of jy kan gaan ry", older: "Vra of die draak jou op 'n avontuur sal neem" }, next: "fly", points: 20 },
+              { text: { young: "Speel met die draak", older: "Spandeer tyd om met jou nuwe vriend te speel" }, next: "play", points: 15, item: "vriendskap armband" }
+            ]
+          },
+          guards: {
+            image: "⚔️",
+            text: {
+              young: "Die wagte wil die draak wegjaag! Maar jy sien hy is ook net bang.",
+              older: "Die wagte kom met spiese aan, maar die draak krimp inmekaar van vrees. Jy besef die draak is net so bang soos almal anders."
+            },
+            choices: [
+              { text: { young: "Staan tussen hulle en die draak", older: "Staan dapper tussen die wagte en die draak" }, next: "brave", points: 25, item: "medalje van moed" },
+              { text: { young: "Vra die wagte om vriendelik te wees", older: "Oortuig die wagte om hul wapens te laat sak" }, next: "peace", points: 20 }
+            ]
+          },
+          ask: {
+            image: "🗣️",
+            text: {
+              young: "Die draak teken 'n prentjie in die sand. Dit wys 'n baba draak wat vas sit op die berg!",
+              older: "Die draak gebruik sy klou om in die sand te teken. Jy sien 'n prentjie van 'n klein draak wat vas sit op 'n berg. Hy vra vir jou hulp!"
+            },
+            choices: [
+              { text: { young: "Kom ons gaan red die baba draak!", older: "Stem in om die baba draak te help red" }, next: "fly", points: 20 },
+              { text: { young: "Kry hulp van die kasteel", older: "Versamel eers voorrade en helpers van die kasteel" }, next: "prepare", points: 15, item: "tou" }
+            ]
+          },
+          fly: {
+            image: "☁️",
+            text: {
+              young: "WOES! Jy vlieg deur die wolke! Dis wonderlik! Jy kan die hele koninkryk onder sien!",
+              older: "Die draak sweef die lug in! Wind waai verby jou gesig terwyl jy deur wolke vlieg. Onder lyk die koninkryk soos 'n klein speelgoed dorpie. Dis ongelooflik!"
+            },
+            choices: [
+              { text: { young: "Skree 'DIS DIE BESTE DAG OOIT!'", older: "Skree van vreugde oor hierdie wonderlike ervaring" }, next: "mountain", points: 15 },
+              { text: { young: "Soek vir die baba draak", older: "Soek die berge af vir die baba draak" }, next: "mountain", points: 20 }
+            ]
+          },
+          play: {
+            image: "🎾",
+            text: {
+              young: "Julle speel vangbal met 'n groot bal! Die draak is baie goed daarmee!",
+              older: "Jy spandeer die middag om speletjies met die draak te speel. Hy is verbasend saggeaard en speels. Die hele kasteel kom kyk!"
+            },
+            choices: [
+              { text: { young: "Leer die draak 'n truuk", older: "Leer die draak 'n paar prettige truuks" }, next: "tricks", points: 15 },
+              { text: { young: "Slaap saam 'n bietjie", older: "Rus saam onder 'n boom" }, next: "rest", points: 10, health: 1 }
+            ]
+          },
+          brave: {
+            image: "🛡️",
+            text: {
+              young: "Almal is verbaas hoe dapper jy is! Die koning self kom kyk wat aangaan!",
+              older: "Jou dapperheid verstom almal! Die koning kom af van die kasteel om die jong ridder te sien wat vir 'n draak opgekom het."
+            },
+            choices: [
+              { text: { young: "Vertel die koning die draak is gaaf", older: "Verduidelik aan die koning dat die draak geen kwaad bedoel nie" }, next: "peace", points: 20 },
+              { text: { young: "Vra die koning om die draak te help", older: "Versoek die koning se hulp vir die draak se sending" }, next: "prepare", points: 25, item: "koninklike bevel" }
+            ]
+          },
+          peace: {
+            image: "🤝",
+            text: {
+              young: "Almal word vriende! Die draak is so bly dat hy vonkelende trane huil!",
+              older: "Vrede word gemaak tussen die koninkryk en die draak. Die draak huil trane van vreugde wat vonkel soos diamante in die sonlig."
+            },
+            choices: [
+              { text: { young: "Vang 'n vonkelende traan", older: "Versamel een van die magiese trane" }, next: "mountain", points: 15, item: "draak traan" },
+              { text: { young: "Gee die draak 'n groot drukkie", older: "Omhels jou nuwe draak vriend" }, next: "mountain", points: 20 }
+            ]
+          },
+          prepare: {
+            image: "🎒",
+            text: {
+              young: "Jy pak 'n sak met peuselhappies en 'n tou. Jy is gereed vir avontuur!",
+              older: "Jy versamel voorrade: tou, kos, 'n warm kombers, en 'n kaart. Die kasteel mense wens jou geluk met jou soektog!"
+            },
+            choices: [
+              { text: { young: "Kom ons gaan berg toe!", older: "Vertrek na die berg met die draak" }, next: "fly", points: 15 }
+            ]
+          },
+          tricks: {
+            image: "🎪",
+            text: {
+              young: "Die draak leer om hartvormige rookkringe te blaas! Almal klap hande!",
+              older: "Die draak leer vinnig! Gou kan hy kleurvolle rookkringe blaas en loepings doen. Dis soos om jou eie sirkus te hê!"
+            },
+            choices: [
+              { text: { young: "Hou 'n vertoning vir almal", older: "Reël 'n vertoning vir die hele koninkryk" }, next: "show", points: 20 },
+              { text: { young: "Leer nog 'n truuk", older: "Probeer 'n gevorderde truuk leer" }, next: "mountain", points: 15 }
+            ]
+          },
+          rest: {
+            image: "😴",
+            text: {
+              young: "Jy slaap lekker. Die draak hou jou warm met sy sagte asem.",
+              older: "Jy rus vreedsaam teen die draak se warm skubbe. Sy sagte asemhaling is soos 'n wiegelied. Jy word verfris wakker!"
+            },
+            choices: [
+              { text: { young: "Nou tyd vir avontuur!", older: "Stel voor om saam op avontuur te gaan" }, next: "fly", points: 15 }
+            ]
+          },
+          show: {
+            image: "🎭",
+            text: {
+              young: "Die hele koninkryk kyk na julle vertoning! Die draak is 'n STER!",
+              older: "Mense kom van ver en wyd om julle wonderlike draak vertoning te sien! Die draak tree pragtig op en buig!"
+            },
+            choices: [
+              { text: { young: "Buig saam", older: "Deel die kollig met jou draak vriend" }, next: "mountain", points: 20 }
+            ]
+          },
+          mountain: {
+            image: "🏔️",
+            text: {
+              young: "Julle bereik die berg! Daar is 'n grot bo-aan. Jy hoor klein draak geluidjies binne!",
+              older: "Die berg is hoog en rotsagtig. Naby die top sien jy 'n grot ingang. Van binne hoor jy klein piepgeluidjies - dit moet die baba draak wees!"
+            },
+            choices: [
+              { text: { young: "Gaan in die grot", older: "Gaan in die grot om die baba te vind" }, next: "cave", points: 15 },
+              { text: { young: "Roep uit na die baba draak", older: "Roep uit om die baba te laat weet hulp het gekom" }, next: "call", points: 10 }
+            ]
+          },
+          cave: {
+            image: "🕯️",
+            text: {
+              young: "Die grot is donker maar jou draak vriend verlig die pad met sy gloeiende skubbe!",
+              older: "Binne die grot is dit pikdonker. Maar jou draak maat se skubbe begin saggies gloei, en verlig jou pad deur die kronkelende tonnels."
+            },
+            choices: [
+              { text: { young: "Volg die klein geluidjies", older: "Volg die geluide dieper in die grot" }, next: "rescue", points: 20 },
+              { text: { young: "Soek ook vir skatte!", older: "Hou 'n oog oop vir grot skatte" }, next: "treasure", points: 15, item: "edelsteen" }
+            ]
+          },
+          call: {
+            image: "📢",
+            text: {
+              young: "Die baba draak hoor jou! Hy kom hardloop uit... maar hy sit vas in ranke!",
+              older: "'n Klein koppie loer uit die grot! Maar die baba draak is verstrengel in dik ranke en kan nie loskom nie."
+            },
+            choices: [
+              { text: { young: "Help om die baba los te maak", older: "Help versigtig om die baba draak te bevry" }, next: "rescue", points: 20 },
+              { text: { young: "Vra groot draak om te help", older: "Kry die ouer draak om te help" }, next: "rescue", points: 15 }
+            ]
+          },
+          treasure: {
+            image: "💎",
+            text: {
+              young: "SJOE! Jy vind 'n kamer vol vonkelende edelstene! Maar die baba draak is belangriker!",
+              older: "Jy ontdek 'n klein kamer vol blink skatte! Maar jy onthou hoekom jy hier is - die baba draak het hulp nodig."
+            },
+            choices: [
+              { text: { young: "Vat een edelsteen, dan vind die baba", older: "Steek 'n klein edelsteen in jou sak as aandenking, dan gaan voort met die redding" }, next: "rescue", points: 15 },
+              { text: { young: "Los die skat, red die baba!", older: "Ignoreer die skat en fokus op die reddingsopdrag" }, next: "rescue", points: 25 }
+            ]
+          },
+          rescue: {
+            image: "🐣",
+            text: {
+              young: "Jy het die baba draak gevind! Hy is so oulik en klein! Die groot draak is SO gelukkig!",
+              older: "Daar is hy - 'n klein drakie met groot oë, nie groter as 'n hondjie nie! Toe die ouer draak sy baba sien, brul hy van vreugde!"
+            },
+            choices: [
+              { text: { young: "Druk die baba draak!", older: "Gee die baba draak 'n sagte drukkie" }, next: "ending", points: 30 },
+              { text: { young: "Vlieg almal huis toe!", older: "Help om die draak familie te herenig en vlieg huis toe" }, next: "ending", points: 25 }
+            ]
+          },
+          ending: {
+            image: "🎉",
+            text: {
+              young: "JY HET DIT GEDOEN! Die drake is weer 'n familie! Hulle maak jou 'n ere-draak!",
+              older: "Baie geluk, dapper avonturier! Jy het die draak familie herenig! As dankie noem hulle jou 'n amptelike Vriend van Drake - 'n held van die ryk!"
+            },
+            choices: [],
+            ending: true,
+            endingType: "win"
+          }
+        }
+      },
+
+      space: {
+        title: "Ruimte Sending",
+        scenes: {
+          start: {
+            image: "🚀",
+            text: {
+              young: "Jy is 'n ruimtevaarder! Jou vuurpyl is gereed om ruimte toe te gaan! 3... 2... 1...",
+              older: "Jy is 'n jong ruimtevaarder wat op die punt staan om op jou eerste sending te lanseer! Sendingbeheer tel af: 3... 2... 1... LANSEER!"
+            },
+            choices: [
+              { text: { young: "SKIET WEG!", older: "Skiet weg die ruimte in!" }, next: "space", points: 10 },
+              { text: { young: "Kyk eers jou helm", older: "Doen nog 'n laaste veiligheidstoets" }, next: "check", points: 15, item: "geluk embleem" }
+            ]
+          },
+          check: {
+            image: "👨‍🚀",
+            text: {
+              young: "Goeie idee! Jou helm is styf vas. Jy vind ook 'n geluk plekkertjie!",
+              older: "Slim gedink! Jy kyk weer alle stelsels na. Alles is perfek, en jy vind 'n geluk sending-embleem wat vorige ruimtevaarders agtergelaat het."
+            },
+            choices: [
+              { text: { young: "NOU skiet weg!", older: "Nou is jy gereed - begin lansering!" }, next: "space", points: 15 }
+            ]
+          },
+          space: {
+            image: "🌍",
+            text: {
+              young: "SJOE! Jy kan die Aarde deur jou venster sien! Dis so mooi en blou!",
+              older: "Wonderlik! Deur jou venster gloei die Aarde blou en groen onder. Wolke draai soos suikerspin oor die oseane. Dis pragtig!"
+            },
+            choices: [
+              { text: { young: "Neem 'n foto", older: "Neem fotos om almal by die huis te wys" }, next: "photo", points: 10, item: "ruimte foto" },
+              { text: { young: "Sweef rond!", older: "Maak jou gordel los en ervaar nul-swaartekrag" }, next: "float", points: 15 },
+              { text: { young: "Soek vir vreemdelinge", older: "Skandeer vir tekens van vreemde lewe" }, next: "scan", points: 10 }
+            ]
+          },
+          photo: {
+            image: "📸",
+            text: {
+              young: "KLIEK! Jy neem die beste foto ooit! Wag... wat is daardie flikkerende lig?",
+              older: "Jy vang asemrowende fotos! Maar terwyl jy fotos neem, merk jy 'n vreemde flikkerende lig naby in die ruimte op..."
+            },
+            choices: [
+              { text: { young: "Vlieg na die lig toe", older: "Ondersoek die geheimsinnige lig" }, next: "mystery", points: 15 },
+              { text: { young: "Vertel Sendingbeheer", older: "Rapporteer die anomalie aan Sendingbeheer" }, next: "report", points: 10 }
+            ]
+          },
+          float: {
+            image: "🤸",
+            text: {
+              young: "JIPPIE! Jy sweef en doen tuimelslae! Nul-swaartekrag is SO OULIK!",
+              older: "Jy sweef gewigsloos deur die kajuit, en doen bollemakiesies! Jou peuselhappies sweef verby jou kop - dis ongelooflik!"
+            },
+            choices: [
+              { text: { young: "Vang 'n sweef koekie", older: "Vang jou sweef peuselhappies" }, next: "snack", points: 10, health: 1 },
+              { text: { young: "Kyk uit die venster", older: "Sweef na die venster vir 'n beter uitsig" }, next: "scan", points: 10 }
+            ]
+          },
+          scan: {
+            image: "📡",
+            text: {
+              young: "Jy kyk baie hard... en sien iets blinks wat na jou toe vlieg!",
+              older: "Jou skandeerder tel iets ongewoons op - 'n klein, blink voorwerp nader jou skip! Dit lyk nie soos enige satelliet wat jy ken nie..."
+            },
+            choices: [
+              { text: { young: "Waai vir dit!", older: "Probeer daarmee kommunikeer" }, next: "alien", points: 20 },
+              { text: { young: "Kruip agter jou stoel weg", older: "Neem verdedigende voorsorgmaatreëls" }, next: "careful", points: 10 }
+            ]
+          },
+          snack: {
+            image: "🍪",
+            text: {
+              young: "Lekker! Ruimte koekies is die beste! Jy voel gereed vir enigiets!",
+              older: "Jy vang jou peuselhappies en geniet 'n nul-swaartekrag maaltyd. Die kos proe nog lekkerder in die ruimte!"
+            },
+            choices: [
+              { text: { young: "Nou ontdek meer!", older: "Gaan voort met jou ruimte ontdekking" }, next: "scan", points: 10 }
+            ]
+          },
+          mystery: {
+            image: "❓",
+            text: {
+              young: "Die lig kom van 'n klein ruimteskippie! Dis so klein en oulik!",
+              older: "Soos jy nader kom, sien jy dis 'n klein ruimteskip - baie kleiner as joune. Dit lyk... vriendelik?"
+            },
+            choices: [
+              { text: { young: "Sê hallo", older: "Probeer kontak maak" }, next: "alien", points: 20 },
+              { text: { young: "Volg dit", older: "Volg die skip versigtig" }, next: "follow", points: 15 }
+            ]
+          },
+          report: {
+            image: "📻",
+            text: {
+              young: "Sendingbeheer sê 'Dis 'n vreemde skip! Wees vriendelik!'",
+              older: "Sendingbeheer is opgewonde! 'Dit kan eerste kontak met vreemde lewe wees! Wees versigtig, maar verwelkomend!'"
+            },
+            choices: [
+              { text: { young: "Waai vir die vreemdelinge!", older: "Probeer vreedsame eerste kontak" }, next: "alien", points: 20 }
+            ]
+          },
+          careful: {
+            image: "🛡️",
+            text: {
+              young: "Jy kruip weg, maar dan hoor jy 'n klein stemmetjie wat sê 'Hallo? Vriend?'",
+              older: "Jy berei voor vir enigiets, maar dan hoor jy 'n klein stemmetjie oor jou radio: 'Hallo? Ons kom in vrede. Vriend?'"
+            },
+            choices: [
+              { text: { young: "Sê 'Ja, vriend!'", older: "Reageer met 'n vriendelike groet" }, next: "alien", points: 20 },
+              { text: { young: "Loer versigtig uit", older: "Wys jouself versigtig" }, next: "alien", points: 15 }
+            ]
+          },
+          follow: {
+            image: "🛸",
+            text: {
+              young: "Die klein skippie lei jou na 'n RUIMTESTASIE wat agter die maan weggesteek is!",
+              older: "Die klein skip lei jou om die maan, waar 'n wonderlike ruimtestasie weggesteek is! Dit is bedek met kleurvolle ligte!"
+            },
+            choices: [
+              { text: { young: "Gaan binne!", older: "Aanvaar die uitnodiging om aan te moor" }, next: "station", points: 20 }
+            ]
+          },
+          alien: {
+            image: "👽",
+            text: {
+              young: "n Oulike klein vreemdeling waai vir jou! Hy is groen en het drie oë! Hy lyk vriendelik!",
+              older: "'n Vreemdeling verskyn in die venster van die klein skip! Hy is klein en groen met drie vriendelike oë. Hy waai vir jou met vier arms!"
+            },
+            choices: [
+              { text: { young: "Waai terug!", older: "Gee die vriendelike waai terug" }, next: "friends", points: 20, item: "vreemdeling vriendskap kenteken" },
+              { text: { young: "Wys hulle jou peuselhappies", older: "Bied aan om jou ruimte peuselhappies te deel" }, next: "share", points: 25 }
+            ]
+          },
+          friends: {
+            image: "🤝",
+            text: {
+              young: "Die vreemdeling is SO gelukkig! Hy doen 'n vreugde dansie! Jy het 'n nuwe vriend!",
+              older: "Die vreemdeling straal van vreugde! Hy doen 'n gelukkige dansie in nul-swaartekrag. Jy het pas die mensdom se eerste vreemdeling vriend gemaak!"
+            },
+            choices: [
+              { text: { young: "Leer hulle dansie", older: "Leer die vreemdeling se gelukkige dansie" }, next: "dance", points: 15 },
+              { text: { young: "Wys hulle die Aarde", older: "Wys na die Aarde en vertel hulle van jou tuiste" }, next: "teach", points: 15 }
+            ]
+          },
+          share: {
+            image: "🍕",
+            text: {
+              young: "Die vreemdeling IS MAL oor jou peuselhappies! Hy deel pers ruimte lekkers met jou!",
+              older: "Die vreemdeling proe jou ruimte kos en is mal daaroor! In ruil deel hy gloeiende pers lekkers van sy planeet. Dis heerlik!"
+            },
+            choices: [
+              { text: { young: "Ruil meer peuselhappies!", older: "Hou 'n ruimte kos uitruil partytjie" }, next: "party", points: 20, item: "ruimte lekkers" }
+            ]
+          },
+          dance: {
+            image: "💃",
+            text: {
+              young: "Jy leer die vreemdeling dansie! Draai, wieg, sweef! Dis baie pret!",
+              older: "Jy leer die vreemdeling se tradisionele begroetingsdans! Dit behels draai, sweef, en snaakse gesigte maak. Jy doen goed!"
+            },
+            choices: [
+              { text: { young: "Leer hulle JOU dansie", older: "Leer die vreemdeling 'n Aarde dansie" }, next: "party", points: 15 }
+            ]
+          },
+          teach: {
+            image: "🌍",
+            text: {
+              young: "Die vreemdeling is mal oor stories van die Aarde! Honde, roomys, reënboë - wonderlik!",
+              older: "Die vreemdeling is gefassineer deur die Aarde! Jy vertel hulle van oseane, woude, diere, en musiek. Hulle kan nie glo hoe wonderlik dit klink nie!"
+            },
+            choices: [
+              { text: { young: "Nooi hulle om te kom kuier!", older: "Nooi die vreemdeling om eendag die Aarde te besoek" }, next: "invite", points: 20 }
+            ]
+          },
+          party: {
+            image: "🎉",
+            text: {
+              young: "Julle hou 'n ruimte partytjie! Dans en peuselhappies! Beste dag ooit!",
+              older: "Julle hou 'n intergalaktiese partytjie! Daar is dans, peuselhappies van twee wêrelde, en baie gelag. Dit is geskiedenis wat gemaak word - met pret!"
+            },
+            choices: [
+              { text: { young: "Gee jou vreemdeling vriend 'n drukkie", older: "Omhels jou nuwe vriend in 'n historiese oomblik" }, next: "station", points: 20 }
+            ]
+          },
+          invite: {
+            image: "🎫",
+            text: {
+              young: "Die vreemdeling is SO opgewonde! 'Ja! Ja! Ek wil honde sien!'",
+              older: "Die vreemdeling spring van opwinding! 'Regtig? Ek kan kom kuier? Ek wil die oseane sien en die honde ontmoet waarvan jy vertel het!'"
+            },
+            choices: [
+              { text: { young: "Kom ons gaan NOU!", older: "Bied aan om hulle dadelik Aarde toe te neem" }, next: "gohome", points: 25 },
+              { text: { young: "Besoek eers HULLE planeet!", older: "Vra om eers hulle planeet te besoek" }, next: "station", points: 25 }
+            ]
+          },
+          station: {
+            image: "🏠",
+            text: {
+              young: "Die vreemdeling neem jou na hulle ruimte huis! Alles sweef en gloei!",
+              older: "Die vreemdeling bring jou na hulle ruimtestasie. Dis ongelooflik - plante wat gloei, sweef meubels, en vensters wat verre sterrestelsels wys!"
+            },
+            choices: [
+              { text: { young: "Speel met vreemdeling speelgoed", older: "Probeer hulle wonderlike tegnologie uit" }, next: "play", points: 15, item: "vreemdeling speelding" },
+              { text: { young: "Ontmoet meer vreemdelinge", older: "Ontmoet die res van die vreemdeling familie" }, next: "family", points: 20 }
+            ]
+          },
+          play: {
+            image: "🎮",
+            text: {
+              young: "Vreemdeling speelgoed is WONDERLIK! 'n Bal wat van kleur verander! 'n Legkaart wat sweef!",
+              older: "Hulle speelgoed is ongelooflik! 'n Bal wat van kleur verander as jy dit aanraak, legkaarte wat sweef en hulself herrangskik, speletjies wat jy met jou gedagtes beheer!"
+            },
+            choices: [
+              { text: { young: "Vat 'n speelding huis toe om te deel", older: "Vra of jy 'n speelding terug Aarde toe kan bring" }, next: "gift", points: 15 }
+            ]
+          },
+          family: {
+            image: "👨‍👩‍👧‍👦",
+            text: {
+              young: "Daar is klein vreemdelinge, groot vreemdelinge, en een RERIG ou wyse vreemdeling!",
+              older: "Jy ontmoet die hele vreemdeling familie! Daar is kinders van jou ouderdom, ouers, en 'n antieke oue met ses oë wat vriendelik vir jou glimlag."
+            },
+            choices: [
+              { text: { young: "Vertel hulle van JOU familie", older: "Deel stories oor Aarde families" }, next: "stories", points: 15 },
+              { text: { young: "Speel met die vreemdeling kinders", older: "Speel saam met die jong vreemdelinge" }, next: "gift", points: 20 }
+            ]
+          },
+          stories: {
+            image: "📚",
+            text: {
+              young: "Hulle is mal oor jou stories! Die ou wyse vreemdeling sê jy is baie spesiaal!",
+              older: "Die vreemdelinge vergader om van die Aarde te hoor. Die oue sê, 'Jy het 'n goeie hart, jong een. Ons volke sal vir ewig vriende wees.'"
+            },
+            choices: [
+              { text: { young: "Belowe om terug te kom", older: "Belowe om terug te keer en meer vriende te bring" }, next: "gohome", points: 20, item: "vreemdeling kompas" }
+            ]
+          },
+          gift: {
+            image: "🎁",
+            text: {
+              young: "Die vreemdelinge gee jou 'n spesiale geskenk! 'n Gloeiende klip wat jou gelukkige herinneringe wys!",
+              older: "Die vreemdeling familie gee jou 'n geskenk - 'n kristal wat gloei en jou gelukkigste herinneringe wys as jy dit vashou."
+            },
+            choices: [
+              { text: { young: "Gee hulle ook iets!", older: "Bied 'n geskenk van die Aarde in ruil aan" }, next: "gohome", points: 25, item: "herinnering kristal" }
+            ]
+          },
+          gohome: {
+            image: "🌍",
+            text: {
+              young: "Tyd om huis toe te gaan! Maar nou het jy vriende in die ruimte! Jy sal terugkom!",
+              older: "Dis tyd om terug te keer Aarde toe, maar dit is nie totsiens nie - dis net 'tot later.' Jy het vriende oor die sterre gemaak!"
+            },
+            choices: [
+              { text: { young: "Waai totsiens vir nou", older: "Sê totsiens en gaan huis toe as 'n held" }, next: "ending", points: 30 }
+            ]
+          },
+          ending: {
+            image: "🏆",
+            text: {
+              young: "JY HET DIT GEDOEN! Jy is die eerste kind wat vreemdeling vriende gemaak het! WONDERLIK!",
+              older: "Baie geluk, Ruimte Ontdekker! Jy het die belangrikste sending in die geskiedenis voltooi - vrede maak met vreemde lewe! Jy is 'n held!"
+            },
+            choices: [],
+            ending: true,
+            endingType: "win"
+          }
+        }
+      },
+
+      pirate: {
+        title: "Seerower Skat",
+        scenes: {
+          start: {
+            image: "⛵",
+            text: {
+              young: "Jy vind 'n skatkaart in 'n bottel op die strand! X merk die plek!",
+              older: "Terwyl jy op die strand stap, ontdek jy 'n ou bottel met 'n vergelde skatkaart binne! Daar is 'n X wat 'n plek op 'n geheimsinnige eiland merk!"
+            },
+            choices: [
+              { text: { young: "Vind 'n boot!", older: "Soek vir 'n boot om die eiland te bereik" }, next: "boat", points: 10 },
+              { text: { young: "Wys jou vriend", older: "Vind 'n vriend om saam op avontuur te gaan" }, next: "friend", points: 15, item: "skatkaart" }
+            ]
+          },
+          boat: {
+            image: "🚣",
+            text: {
+              young: "Jy vind 'n klein roeibootjie! Dit het roeispane en alles!",
+              older: "Jy vind 'n ou maar stewige roeiboot wat aan die kaai vasgebind is. Dis perfek om die eiland te bereik!"
+            },
+            choices: [
+              { text: { young: "Roei na die eiland!", older: "Vaar weg vir avontuur!" }, next: "sailing", points: 15 },
+              { text: { young: "Pak eers peuselhappies", older: "Versamel voorrade voor jy vertrek" }, next: "supplies", points: 10, item: "peuselhappies" }
+            ]
+          },
+          friend: {
+            image: "🧑‍🤝‍🧑",
+            text: {
+              young: "Jou beste vriend wil saamkom! Twee skatjagters is beter as een!",
+              older: "Jou beste vriend is opgewonde om saam te kom! 'n Skatjag? Ek is in! Ons sal die beste seerowers ooit wees!'"
+            },
+            choices: [
+              { text: { young: "Vind saam 'n boot", older: "Soek saam as 'n span vir 'n boot" }, next: "boat", points: 15 }
+            ]
+          },
+          supplies: {
+            image: "🎒",
+            text: {
+              young: "Jy pak toebroodjies, sap, en 'n flits. Gereed!",
+              older: "Jy versamel alles wat jy dalk nodig het: kos, water, 'n flits, tou, en 'n kompas. Nou is jy voorbereid vir enigiets!"
+            },
+            choices: [
+              { text: { young: "NOU kom ons gaan!", older: "Tyd om te vaar!" }, next: "sailing", points: 10, item: "kompas" }
+            ]
+          },
+          sailing: {
+            image: "🌊",
+            text: {
+              young: "Plons! Plons! Jy roei oor die golwe. Die eiland kom nader!",
+              older: "Jy roei oor die vonkelende water. Dolfyne swem langs jou boot! Die geheimsinnige eiland word groter aan die horison."
+            },
+            choices: [
+              { text: { young: "Waai vir die dolfyne!", older: "Neem 'n oomblik om die dolfyne te geniet" }, next: "dolphins", points: 10 },
+              { text: { young: "Roei vinniger!", older: "Bly gefokus en roei vinniger" }, next: "island", points: 15 }
+            ]
+          },
+          dolphins: {
+            image: "🐬",
+            text: {
+              young: "Die dolfyne doen tuimelslae! Een spat jou nat! Hehe!",
+              older: "Die dolfyne doen toertjies, spring en draai! Een spat jou speels nat met sy stert. Wat 'n magiese oomblik!"
+            },
+            choices: [
+              { text: { young: "Volg hulle na die eiland", older: "Laat die dolfyne jou na die strand lei" }, next: "island", points: 15 }
+            ]
+          },
+          island: {
+            image: "🏝️",
+            text: {
+              young: "Jy het dit gemaak! Die eiland het palmbome en 'n groot rotsagtige heuwel!",
+              older: "Jy bereik die eiland! Dis pragtig - goue sand, wuiwende palmbome, en 'n hoë rotsagtige heuwel in die middel."
+            },
+            choices: [
+              { text: { young: "Kyk na die kaart!", older: "Raadpleeg jou skatkaart" }, next: "map", points: 10 },
+              { text: { young: "Verken die strand", older: "Soek die strand vir leidrade" }, next: "beach", points: 15 }
+            ]
+          },
+          map: {
+            image: "🗺️",
+            text: {
+              young: "Die kaart sê: 'Begin by die palmboom wat soos 'n Y lyk!'",
+              older: "Die kaart wys 'n pad wat begin by 'n Y-vormige palmboom, deur 'n grot na die X!"
+            },
+            choices: [
+              { text: { young: "Vind die Y boom!", older: "Soek vir die Y-vormige palmboom" }, next: "tree", points: 15 },
+              { text: { young: "Soek vir voetspore", older: "Kyk vir enige ander leidrade of spore" }, next: "tracks", points: 10 }
+            ]
+          },
+          beach: {
+            image: "🏖️",
+            text: {
+              young: "Jy vind 'n mooi skulp! En kyk - voetspore wat die oerwoud ingaan!",
+              older: "Terwyl jy verken, vind jy 'n pragtige skulp. Jy merk ook ou voetspore op wat die oerwoud inlei!"
+            },
+            choices: [
+              { text: { young: "Volg die voetspore", older: "Volg die geheimsinnige voetspore" }, next: "tracks", points: 15, item: "mooi skulp" },
+              { text: { young: "Kyk na die kaart", older: "Verwys terug na jou kaart" }, next: "map", points: 10 }
+            ]
+          },
+          tracks: {
+            image: "👣",
+            text: {
+              young: "Die voetspore gaan 'n grillerige oerwoud in! Maar jy is dapper!",
+              older: "Die voetspore lei in die digte oerwoud. Dis 'n bietjie donker binne, maar jy is op die spoor van skat!"
+            },
+            choices: [
+              { text: { young: "Gaan die oerwoud in", older: "Volg die spoor dapper" }, next: "jungle", points: 15 },
+              { text: { young: "Gebruik jou flits", older: "Skakel jou flits aan en gaan versigtig voort" }, next: "jungle", points: 20 }
+            ]
+          },
+          tree: {
+            image: "🌴",
+            text: {
+              young: "Jy het dit gevind! Die Y boom! Daar is pyle in die bas gekrap!",
+              older: "Daar is dit - 'n palmboom perfek gevorm soos 'n Y! Op sy stam het iemand pyle gekrap wat na die rotsagtige heuwel wys."
+            },
+            choices: [
+              { text: { young: "Volg die pyle!", older: "Volg die pyle na die heuwel" }, next: "jungle", points: 15 }
+            ]
+          },
+          jungle: {
+            image: "🌿",
+            text: {
+              young: "Sjoe! Kleurvolle voëls! Snaakse apies! Die oerwoud is wonderlik!",
+              older: "Die oerwoud is lewendig met kleur! Papegaaie skree bo-oor, apies swaai van ranke, en eksotiese blomme bloei oral."
+            },
+            choices: [
+              { text: { young: "Sê hallo vir 'n aap", older: "Probeer 'n nuuskierige aap bevriend" }, next: "monkey", points: 15 },
+              { text: { young: "Soek vir die grot", older: "Soek vir die grot op die kaart" }, next: "cave", points: 20 }
+            ]
+          },
+          monkey: {
+            image: "🐒",
+            text: {
+              young: "Die aap hou van jou! Hy het 'n blink muntstuk in sy poot!",
+              older: "'n Vriendelike aap swaai af om jou te ontmoet! Hy hou iets blinks vas - 'n ou goue muntstuk!"
+            },
+            choices: [
+              { text: { young: "Ruil 'n peuselhappie vir die muntstuk", older: "Bied kos aan in ruil vir die muntstuk" }, next: "coin", points: 20, item: "goue muntstuk" },
+              { text: { young: "Vra aap om te help skat vind", older: "Kyk of die aap jou sal lei" }, next: "cave", points: 15 }
+            ]
+          },
+          coin: {
+            image: "🪙",
+            text: {
+              young: "Die aap gee jou die muntstuk! Dis regte seerower goud!",
+              older: "Die aap ruil gelukkig die muntstuk vir jou peuselhappie! Dis 'n egte goue dobloen - skat is beslis hier!"
+            },
+            choices: [
+              { text: { young: "Hou aan soek vir meer!", older: "Dit bevestig dit - vind die hoofskat!" }, next: "cave", points: 20 }
+            ]
+          },
+          cave: {
+            image: "🕳️",
+            text: {
+              young: "'n Donker grot! Jy kan water hoor drup binne. Miskien ook vlermuise?",
+              older: "Jy vind die grot ingang! Dis donker binne, maar jy kan water hoor drup. Die X op jou kaart is iewers binne..."
+            },
+            choices: [
+              { text: { young: "Gaan in! Jy is dapper!", older: "Gaan die grot in met moed" }, next: "inside", points: 20 },
+              { text: { young: "Maak eers 'n fakkel", older: "Vind materiaal om 'n fakkel te maak" }, next: "torch", points: 15, item: "fakkel" }
+            ]
+          },
+          torch: {
+            image: "🔦",
+            text: {
+              young: "Jy maak 'n fakkel met stokke en blare! Nou kan jy sien!",
+              older: "Met stokke en droë gras maak jy 'n fakkel. Die warm lig druk die donkerte terug."
+            },
+            choices: [
+              { text: { young: "Die grot in!", older: "Gaan die grot in met jou fakkel" }, next: "inside", points: 15 }
+            ]
+          },
+          inside: {
+            image: "💎",
+            text: {
+              young: "Die grot vonkel! Daar is blink kristalle aan die mure! En... is dit 'n kis?!",
+              older: "Binne die grot skitter kristalle wat in die mure sit in jou lig. En daar - in 'n klein kamertjie - staan 'n ou houtkis!"
+            },
+            choices: [
+              { text: { young: "Maak die kis oop!", older: "Hardloop om die skatkis oop te maak" }, next: "chest", points: 25 },
+              { text: { young: "Kyk eers vir lokvalle", older: "Kyk versigtig vir enige lokvalle" }, next: "careful", points: 20 }
+            ]
+          },
+          careful: {
+            image: "🔍",
+            text: {
+              young: "Goeie idee! Daar is 'n wankelrige klip. Jy stap om dit!",
+              older: "Slim gedink! Jy merk 'n drukplaat op die vloer op. Jy stap versigtig om dit en bereik die kis veilig."
+            },
+            choices: [
+              { text: { young: "NOU maak dit oop!", older: "Maak die kis veilig oop" }, next: "chest", points: 25 }
+            ]
+          },
+          chest: {
+            image: "📦",
+            text: {
+              young: "KLIEK! Die kis gaan oop! Binne is GOUE MUNTSTUKKE, JUWELE, en 'n KROON!",
+              older: "Die ou slot klik oop! Binne: hope goue muntstukke, skitterende juwele, 'n pragtige kroon, en 'n brief van die seerower wat dit weggesteek het!"
+            },
+            choices: [
+              { text: { young: "Lees die brief!", older: "Lees die seerower se brief" }, next: "note", points: 15 },
+              { text: { young: "Probeer die kroon aan!", older: "Probeer om die kroon te dra" }, next: "crown", points: 20, item: "seerower kroon" }
+            ]
+          },
+          note: {
+            image: "📜",
+            text: {
+              young: "Die brief sê: 'Vir wie ook al dit vind - jy is nou 'n WARE SEEROWER!'",
+              older: "Die brief lees: 'Baie geluk, dapper avonturier! As jy dit gevind het, het jy die hart van 'n ware seerower. Hierdie skat is nou joune!'"
+            },
+            choices: [
+              { text: { young: "EK IS 'N SEEROWER!", older: "Aanvaar jou nuwe titel as 'n ware seerower" }, next: "ending", points: 30 }
+            ]
+          },
+          crown: {
+            image: "👑",
+            text: {
+              young: "Die kroon pas perfek! Jy lyk soos 'n SEEROWER KONING!",
+              older: "Die kroon pas perfek op jou kop! Jy voel soos koningskap - die koning of koningin van die seerowers!"
+            },
+            choices: [
+              { text: { young: "Vat die skat huis toe!", older: "Eis jou skat en gaan huis toe as oorwinnaar" }, next: "ending", points: 30 }
+            ]
+          },
+          ending: {
+            image: "🏴‍☠️",
+            text: {
+              young: "HOERA! Jy het die skat gevind! Jy is die beste seerower OOIT!",
+              older: "Baie geluk, Seerower Kampioen! Jy het legendariese skat gevind! Liedjies sal vir jare oor jou avontuur gesing word!"
+            },
+            choices: [],
+            ending: true,
+            endingType: "win"
+          }
+        }
+      },
+
+      jungle: {
+        title: "Oerwoud Ontdekker",
+        scenes: {
+          start: {
+            image: "🌴",
+            text: {
+              young: "Jy is 'n ontdekker in 'n GROOT oerwoud! Jy hoor dieregeluide oral rondom!",
+              older: "Jy is diep in 'n onverkende oerwoud! Eksotiese geluide vul die lug - voëlroepe, apie geklets, en geheimsinnige geritsel in die bosse."
+            },
+            choices: [
+              { text: { young: "Volg die voëlgeluide", older: "Volg die kleurvolle voëls wat jy hoor" }, next: "birds", points: 10 },
+              { text: { young: "Soek vir diere voetspore", older: "Soek vir dierespore om te volg" }, next: "tracks", points: 15 },
+              { text: { young: "Klim in 'n boom om rond te kyk", older: "Klim 'n hoë boom om jou rigting te kry" }, next: "climb", points: 15 }
+            ]
+          },
+          birds: {
+            image: "🦜",
+            text: {
+              young: "SJOE! 'n Reënboog voël! Hy is rooi, blou, geel, EN groen!",
+              older: "Jy vind 'n pragtige papegaai met vere van elke kleur! Hy kantel sy kop en lyk asof hy jou nuuskierig bestudeer."
+            },
+            choices: [
+              { text: { young: "Waai vir die voël", older: "Probeer met die papegaai kommunikeer" }, next: "parrot", points: 15 },
+              { text: { young: "Volg waar hy vlieg", older: "Volg die papegaai soos hy opstyg" }, next: "waterfall", points: 20 }
+            ]
+          },
+          tracks: {
+            image: "🐾",
+            text: {
+              young: "Groot pootafdrukke! Hulle gaan na 'n rivier! Wat kan dit wees?",
+              older: "Jy vind groot pootafdrukke in die modder! Hulle is vars en lei na die geluid van lopende water."
+            },
+            choices: [
+              { text: { young: "Volg hulle versigtig", older: "Volg die dier versigtig" }, next: "river", points: 15 },
+              { text: { young: "Neem 'n foto van die spore", older: "Dokumenteer die spore vir jou navorsing" }, next: "river", points: 20, item: "spoor foto" }
+            ]
+          },
+          climb: {
+            image: "🌳",
+            text: {
+              young: "Jy klim hoog op! Jy kan 'n vonkelende waterval en 'n weggesteekte grot sien!",
+              older: "Van die boomtop af sien jy 'n manjifieke waterval in die verte, en wat lyk soos 'n weggesteekte grot agter die ranke!"
+            },
+            choices: [
+              { text: { young: "Gaan na die waterval!", older: "Gaan na die waterval toe" }, next: "waterfall", points: 15 },
+              { text: { young: "Kyk na die grot!", older: "Ondersoek die geheimsinnige grot" }, next: "cave", points: 20 }
+            ]
+          },
+          parrot: {
+            image: "🗣️",
+            text: {
+              young: "Die papegaai praat! 'Hallo vriend! Wil jy iets gaaf sien?' sê hy!",
+              older: "Wonderbaarlik, die papegaai praat! 'Groete, ontdekker! Ek ken die oerwoud se geheime. Wil jy hê ek moet jou iets spesiaals wys?'"
+            },
+            choices: [
+              { text: { young: "Ja asseblief!", older: "Aanvaar die papegaai se aanbod" }, next: "guide", points: 20, item: "papegaai vriend" },
+              { text: { young: "Kan ek jou 'n peuselhappie gee?", older: "Bied die papegaai 'n lekkerny aan" }, next: "guide", points: 15 }
+            ]
+          },
+          river: {
+            image: "🏞️",
+            text: {
+              young: "'n Pragtige rivier! En daar is 'n TIER wat water drink! Hy sien jou!",
+              older: "Jy bereik 'n kristalhelder rivier. 'n Majestueuese tier drink aan die waterkant! Hy merk jou op en vries."
+            },
+            choices: [
+              { text: { young: "Bly baie stil", older: "Bly heeltemal stil en kalm" }, next: "tiger", points: 20 },
+              { text: { young: "Waai stadig hallo", older: "Maak 'n stadige, nie-bedreigende gebaar" }, next: "tiger", points: 15 }
+            ]
+          },
+          tiger: {
+            image: "🐯",
+            text: {
+              young: "Die tier kyk na jou... dan gaan hy terug om water te drink! Hy is nie eng nie!",
+              older: "Die tier bestudeer jou vir 'n lang oomblik, dan keer hy vreedsaam terug om te drink. Jy het pas 'n ongelooflike wildsontmoeting gehad!"
+            },
+            choices: [
+              { text: { young: "Neem 'n foto van ver af", older: "Fotografeer hierdie seldsame oomblik versigtig" }, next: "photo", points: 20, item: "tier foto" },
+              { text: { young: "Kyk stil", older: "Kyk eenvoudig na hierdie manjifieke wese" }, next: "cross", points: 15 }
+            ]
+          },
+          photo: {
+            image: "📷",
+            text: {
+              young: "KLIEK! Beste foto ooit! Die tier kyk selfs na die kamera!",
+              older: "Jy vang 'n wonderlike foto! Die tier lyk selfs asof hy poseer, en kyk direk na jou kamera met wyse oë."
+            },
+            choices: [
+              { text: { young: "Volg die rivier", older: "Gaan voort langs die rivieroewer" }, next: "cross", points: 15 }
+            ]
+          },
+          cross: {
+            image: "🌉",
+            text: {
+              young: "Daar is 'n ou toubrug! Dit lyk 'n bietjie wankelrig!",
+              older: "'n Ou toubrug strek oor die rivier. Dit lyk verslyte maar nog bruikbaar. Aan die ander kant sien jy antieke klipstrukture!"
+            },
+            choices: [
+              { text: { young: "Steek versigtig die brug oor", older: "Steek die brug versigtig oor" }, next: "temple", points: 20 },
+              { text: { young: "Vind 'n ander pad oor", older: "Soek vir 'n veiliger oorsteekplek" }, next: "wade", points: 15 }
+            ]
+          },
+          wade: {
+            image: "🚶",
+            text: {
+              young: "Jy vind 'n vlak plek! Die water kielie jou voete!",
+              older: "Jy vind 'n vlak gedeelte waar jy kan deurwaad. Die koel water is verkwikkend!"
+            },
+            choices: [
+              { text: { young: "Plons deur!", older: "Steek deur die water" }, next: "temple", points: 15 }
+            ]
+          },
+          waterfall: {
+            image: "💧",
+            text: {
+              young: "WOOOEES! Die waterval is SO groot! Daar is 'n reënboog in die miswolke!",
+              older: "Die waterval is asemrowend! Water stort af van hoë kranse, en skep 'n permanente reënboog in die mistige sproei."
+            },
+            choices: [
+              { text: { young: "Loop deur die reënboog!", older: "Loop deur die pragtige mis" }, next: "behind", points: 15 },
+              { text: { young: "Kyk agter die waterval", older: "Kyk of daar iets agter die waterval is" }, next: "behind", points: 20 }
+            ]
+          },
+          behind: {
+            image: "✨",
+            text: {
+              young: "Daar is 'n geheime grot agter die waterval! Dit het vonkelende mure!",
+              older: "Agter die waterval is 'n weggesteekte grot! Die mure is bedek met skitterende minerale wat die lig pragtig vang."
+            },
+            choices: [
+              { text: { young: "Gaan binne!", older: "Verken die weggesteekte grot" }, next: "cave", points: 20, item: "kristal" }
+            ]
+          },
+          guide: {
+            image: "🦜",
+            text: {
+              young: "Die papegaai vlieg vooruit en wag vir jou! 'Hierlangs!' sê hy.",
+              older: "Die papegaai vlieg van tak tot tak, en wag altyd vir jou om by te kom. 'Volg my, ontdekker!'"
+            },
+            choices: [
+              { text: { young: "Volg die papegaai!", older: "Volg jou kleurvolle gids" }, next: "temple", points: 20 }
+            ]
+          },
+          cave: {
+            image: "🦇",
+            text: {
+              young: "Die grot het vriendelike vlermuise! En ou tekeninge op die mure!",
+              older: "Vrugtevlermuise hang vreedsaam van die plafon af. Die mure is bedek met antieke skilderye van diere en mense!"
+            },
+            choices: [
+              { text: { young: "Kyk na die prentjies", older: "Bestudeer die antieke grotkuns" }, next: "paintings", points: 15 },
+              { text: { young: "Gaan dieper in die grot", older: "Verken dieper in die grot" }, next: "deep", points: 20 }
+            ]
+          },
+          paintings: {
+            image: "🎨",
+            text: {
+              young: "Die tekeninge wys mense wat 'n goue tempel vind! Is dit waar?!",
+              older: "Die antieke kuns toon mense wat 'n manjifieke goue tempel ontdek! Kan dit nog iewers in hierdie oerwoud bestaan?"
+            },
+            choices: [
+              { text: { young: "Soek vir die tempel!", older: "Gebruik die skilderye as leidraad om die tempel te vind" }, next: "temple", points: 20 }
+            ]
+          },
+          deep: {
+            image: "💎",
+            text: {
+              young: "SJOE! Die grot gaan oop in 'n GROOT kamer vol edelstene!",
+              older: "Die tonnel gaan oop in 'n enorme grot! Duisende kristalle bedek die mure, plafon, en vloer, en gloei met innerlike lig!"
+            },
+            choices: [
+              { text: { young: "Raak aan 'n kristal", older: "Ondersoek die kristalle versigtig" }, next: "crystal", points: 15, item: "gloeiende kristal" },
+              { text: { young: "Vind waar die lig vandaan kom", older: "Volg die bron van die vreemde lig" }, next: "temple", points: 20 }
+            ]
+          },
+          crystal: {
+            image: "🔮",
+            text: {
+              young: "Die kristal voel warm en tintelig! Dit lig op as jy dit vashou!",
+              older: "As jy die kristal aanraak, word dit warm in jou hand en begin helderder gloei! Dit lyk asof dit met jou energie resoneer."
+            },
+            choices: [
+              { text: { young: "Hou aan ontdek met jou kristal!", older: "Gebruik die gloeiende kristal om jou pad vorentoe te verlig" }, next: "temple", points: 20 }
+            ]
+          },
+          temple: {
+            image: "🏛️",
+            text: {
+              young: "SJOE!!! 'n Goue tempel weggesteek in die oerwoud! Dis so pragtig!",
+              older: "Ongelooflik! Deur die oerwoud verskyn 'n antieke goue tempel! Ranke en blomme het daaroor gegroei, maar sy skoonheid is onmiskenbaar!"
+            },
+            choices: [
+              { text: { young: "Gaan binne die tempel", older: "Gaan die antieke tempel binne" }, next: "inside", points: 20 },
+              { text: { young: "Loop eers om dit", older: "Loop om die tempel om dit te ondersoek" }, next: "around", points: 15 }
+            ]
+          },
+          around: {
+            image: "🗿",
+            text: {
+              young: "Daar is dierestandbeelde oral! 'n Aap, 'n olifant, 'n tier!",
+              older: "Klipstandbeelde van oerwoud diere bewaak die tempel - 'n wyse aap, 'n magtige olifant, en 'n edele tier. Hulle lyk amper lewendig!"
+            },
+            choices: [
+              { text: { young: "Sê hallo vir die standbeelde", older: "Betoon respek aan die bewaker standbeelde" }, next: "inside", points: 15 },
+              { text: { young: "Tel al die diere", older: "Dokumenteer al die verskillende diere gravures" }, next: "inside", points: 20, item: "tempel skets" }
+            ]
+          },
+          inside: {
+            image: "👑",
+            text: {
+              young: "Binne die tempel is 'n goue troon! En 'n kis vol skatte!",
+              older: "Die tempel binnekant is manjifiek! 'n Goue troon sit in die middel, en voor dit rus 'n sierlike kis vol antieke skatte!"
+            },
+            choices: [
+              { text: { young: "Sit op die troon!", older: "Gaan sit op die antieke troon" }, next: "throne", points: 20, item: "goue veer" },
+              { text: { young: "Kyk in die skatkis", older: "Ondersoek die skatkis" }, next: "treasure", points: 20 }
+            ]
+          },
+          throne: {
+            image: "🪑",
+            text: {
+              young: "Jy sit en skielik verskyn al die diere van die oerwoud! Hulle buig vir jou!",
+              older: "Soos jy sit, gebeur iets magies! Diere van regoor die oerwoud vergader by die tempel ingang, en buig hulle koppe vir jou!"
+            },
+            choices: [
+              { text: { young: "Waai vir al jou diere vriende!", older: "Groet jou nuwe diere vriende grasieloos" }, next: "ending", points: 30 }
+            ]
+          },
+          treasure: {
+            image: "🏆",
+            text: {
+              young: "Die kis het 'n spesiale medalje! Dit sê 'BESTE ONTDEKKER OOIT'!",
+              older: "Binne die kis is 'n antieke medalje gegraveer: 'Aan die dapper ontdekker wat hierdie plek ontdek het - jy is nou Bewaarder van die Oerwoud!'"
+            },
+            choices: [
+              { text: { young: "Sit die medalje trots aan!", older: "Aanvaar die titel van Oerwoud Bewaarder" }, next: "ending", points: 30, item: "ontdekker medalje" }
+            ]
+          },
+          ending: {
+            image: "🌟",
+            text: {
+              young: "JY HET DIT GEDOEN! Jy is die beste oerwoud ontdekker! Al die diere is lief vir jou!",
+              older: "Baie geluk, Groot Ontdekker! Jy het die legendariese verlore tempel ontdek en die Bewaarder van die Oerwoud geword! Jou avontuur sal vir ewig onthou word!"
+            },
+            choices: [],
+            ending: true,
+            endingType: "win"
+          }
+        }
+      }
+    };
+
+    const state = {
+      age: null,
+      story: null,
+      currentScene: null,
+      health: 3,
+      points: 0,
+      chapter: 1,
+      inventory: [],
+    };
+
+    const setupScreen = document.getElementById("setupScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const ageSelect = document.getElementById("ageSelect");
+    const storySelect = document.getElementById("storySelect");
+    const startBtn = document.getElementById("startBtn");
+    const elHealth = document.getElementById("health");
+    const elPoints = document.getElementById("points");
+    const elChapter = document.getElementById("chapter");
+    const elInventory = document.getElementById("inventory");
+    const elStoryImage = document.getElementById("storyImage");
+    const elStoryText = document.getElementById("storyText");
+    const elChoices = document.getElementById("choices");
+    const elResultEmoji = document.getElementById("resultEmoji");
+    const elResultTitle = document.getElementById("resultTitle");
+    const elResultText = document.getElementById("resultText");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+
+    function updateStartButton() {
+      startBtn.disabled = !(state.age && state.story);
+    }
+
+    ageSelect.querySelectorAll(".setup-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        ageSelect.querySelectorAll(".setup-btn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        state.age = btn.dataset.age;
+        updateStartButton();
+      });
+    });
+
+    storySelect.querySelectorAll(".setup-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        storySelect.querySelectorAll(".setup-btn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        state.story = btn.dataset.story;
+        updateStartButton();
+      });
+    });
+
+    startBtn.addEventListener("click", startGame);
+    playAgainBtn.addEventListener("click", resetGame);
+
+    function startGame() {
+      state.currentScene = "start";
+      state.health = 3;
+      state.points = 0;
+      state.chapter = 1;
+      state.inventory = [];
+
+      setupScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+
+      renderScene();
+    }
+
+    function renderScene() {
+      const storyData = STORIES[state.story];
+      const scene = storyData.scenes[state.currentScene];
+
+      elHealth.textContent = state.health;
+      elPoints.textContent = state.points;
+      elChapter.textContent = state.chapter;
+
+      if (state.inventory.length === 0) {
+        elInventory.innerHTML = '<span style="color:var(--muted);font-size:13px;">Nog geen items nie</span>';
+      } else {
+        elInventory.innerHTML = state.inventory.map(item =>
+          `<div class="item">📦 ${item}</div>`
+        ).join("");
+      }
+
+      elStoryImage.textContent = scene.image;
+      elStoryImage.classList.add("pulse");
+      setTimeout(() => elStoryImage.classList.remove("pulse"), 300);
+
+      const text = typeof scene.text === "string" ? scene.text : scene.text[state.age];
+      elStoryText.textContent = text;
+      elStoryText.className = "story-text" + (state.age === "young" ? " young" : "");
+
+      if (scene.ending) {
+        setTimeout(() => showEnding(scene), 1500);
+        elChoices.innerHTML = "";
+        return;
+      }
+
+      elChoices.innerHTML = scene.choices.map((choice, i) => {
+        const choiceText = typeof choice.text === "string" ? choice.text : choice.text[state.age];
+        return `<button class="choice-btn ${state.age === "young" ? "young" : ""}" data-index="${i}">${choiceText}</button>`;
+      }).join("");
+
+      elChoices.querySelectorAll(".choice-btn").forEach(btn => {
+        btn.addEventListener("click", () => makeChoice(parseInt(btn.dataset.index)));
+      });
+    }
+
+    function makeChoice(index) {
+      const storyData = STORIES[state.story];
+      const scene = storyData.scenes[state.currentScene];
+      const choice = scene.choices[index];
+
+      if (choice.points) {
+        state.points += choice.points;
+      }
+      if (choice.item) {
+        state.inventory.push(choice.item);
+      }
+      if (choice.health) {
+        state.health = Math.min(5, state.health + choice.health);
+      }
+      if (choice.damage) {
+        state.health -= choice.damage;
+        if (state.health <= 0) {
+          showEnding({ endingType: "lose" });
+          return;
+        }
+      }
+
+      state.currentScene = choice.next;
+      state.chapter++;
+
+      renderScene();
+    }
+
+    function showEnding(scene) {
+      gameScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      if (scene.endingType === "win") {
+        elResultEmoji.textContent = "🎉";
+        elResultTitle.textContent = "Wonderlike Avontuur!";
+        elResultText.textContent = `Jy het die storie voltooi met ${state.points} punte en ${state.inventory.length} items versamel! Jy is 'n ware avonturier!`;
+      } else {
+        elResultEmoji.textContent = "💫";
+        elResultTitle.textContent = "Probeer Weer!";
+        elResultText.textContent = "Elke avonturier het terugslae. Wil jy weer probeer?";
+      }
+    }
+
+    function resetGame() {
+      resultScreen.classList.add("hidden");
+      setupScreen.classList.remove("hidden");
+      state.age = null;
+      state.story = null;
+      ageSelect.querySelectorAll(".setup-btn").forEach(b => b.classList.remove("selected"));
+      storySelect.querySelectorAll(".setup-btn").forEach(b => b.classList.remove("selected"));
+      updateStartButton();
+    }
+  </script>
+</body>
+</html>
