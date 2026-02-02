@@ -1,0 +1,1501 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Story Quest</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111a2e;
+      --text: #eaf0ff;
+      --muted: #9fb0d0;
+      --good: #2dd4bf;
+      --bad: #fb7185;
+      --warn: #fbbf24;
+      --btn: #1f2a44;
+      --btnHover: #283658;
+      --shadow: rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 10%, #1a2a55 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .wrap {
+      width: min(600px, 100%);
+      display: grid;
+      gap: 14px;
+    }
+
+    .card {
+      background: rgba(17,26,46,0.82);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 14px 40px var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .stat {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stat-icon { font-size: 18px; }
+    .stat-value { font-weight: 700; }
+
+    /* Inventory */
+    .inventory {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 16px;
+      min-height: 36px;
+    }
+    .item {
+      background: rgba(252,211,77,0.15);
+      border: 1px solid rgba(252,211,77,0.3);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Story area */
+    .story-image {
+      font-size: 64px;
+      text-align: center;
+      margin: 16px 0;
+      line-height: 1;
+    }
+
+    .story-text {
+      font-size: 18px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      text-align: center;
+      min-height: 80px;
+    }
+    .story-text.young {
+      font-size: 22px;
+      line-height: 1.8;
+    }
+
+    /* Choices */
+    .choices {
+      display: grid;
+      gap: 10px;
+    }
+    .choice-btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--btn);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.15s;
+    }
+    .choice-btn:hover {
+      background: var(--btnHover);
+      transform: translateY(-2px);
+    }
+    .choice-btn:active {
+      transform: scale(0.98);
+    }
+    .choice-btn.young {
+      font-size: 20px;
+      padding: 18px 22px;
+    }
+
+    /* Setup screen */
+    .setup-section {
+      margin-bottom: 20px;
+    }
+    .setup-label {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .setup-options {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .setup-btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--btn);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .setup-btn:hover { background: var(--btnHover); }
+    .setup-btn.selected {
+      background: rgba(45,212,191,0.2);
+      border-color: rgba(45,212,191,0.4);
+      color: var(--good);
+    }
+    .setup-btn .emoji {
+      display: block;
+      font-size: 32px;
+      margin-bottom: 6px;
+    }
+
+    .start-btn {
+      appearance: none;
+      border: 1px solid rgba(45,212,191,0.35);
+      background: rgba(45,212,191,0.18);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+      touch-action: manipulation;
+    }
+    .start-btn:hover { background: rgba(45,212,191,0.25); }
+    .start-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Result screen */
+    .result {
+      text-align: center;
+    }
+    .result-title {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+    .result-emoji {
+      font-size: 80px;
+      margin: 20px 0;
+    }
+    .result-text {
+      font-size: 18px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .hidden { display: none !important; }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .footer a {
+      color: var(--good);
+      text-decoration: none;
+    }
+
+    /* Feedback animation */
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    .pulse {
+      animation: pulse 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="setupScreen">
+      <div class="title">Story Quest</div>
+      <div class="subtitle">Choose your adventure!</div>
+
+      <div class="setup-section">
+        <div class="setup-label">Who's playing?</div>
+        <div class="setup-options" id="ageSelect">
+          <button class="setup-btn" data-age="young">
+            <span class="emoji">🧒</span>
+            Younger (6)
+          </button>
+          <button class="setup-btn" data-age="older">
+            <span class="emoji">🧑</span>
+            Older (8+)
+          </button>
+        </div>
+      </div>
+
+      <div class="setup-section">
+        <div class="setup-label">Pick a story</div>
+        <div class="setup-options" id="storySelect">
+          <button class="setup-btn" data-story="dragon">
+            <span class="emoji">🐉</span>
+            Dragon Quest
+          </button>
+          <button class="setup-btn" data-story="space">
+            <span class="emoji">🚀</span>
+            Space Mission
+          </button>
+          <button class="setup-btn" data-story="pirate">
+            <span class="emoji">🏴‍☠️</span>
+            Pirate Treasure
+          </button>
+          <button class="setup-btn" data-story="jungle">
+            <span class="emoji">🌴</span>
+            Jungle Explorer
+          </button>
+        </div>
+      </div>
+
+      <button class="start-btn" id="startBtn" disabled>Start Adventure!</button>
+    </div>
+
+    <div class="card hidden" id="gameScreen">
+      <div class="stats-bar" id="statsBar">
+        <div class="stat">
+          <span class="stat-icon">❤️</span>
+          <span class="stat-value" id="health">3</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon">⭐</span>
+          <span class="stat-value" id="points">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon">🎯</span>
+          <span class="stat-value" id="chapter">1</span>
+        </div>
+      </div>
+
+      <div class="inventory" id="inventory"></div>
+
+      <div class="story-image" id="storyImage">🏰</div>
+      <div class="story-text" id="storyText">Loading...</div>
+
+      <div class="choices" id="choices"></div>
+    </div>
+
+    <div class="card hidden" id="resultScreen">
+      <div class="result">
+        <div class="result-emoji" id="resultEmoji">🎉</div>
+        <div class="result-title" id="resultTitle">The End!</div>
+        <div class="result-text" id="resultText">You completed the adventure!</div>
+        <button class="start-btn" id="playAgainBtn">Play Again</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <a href="index.html">Back to Number Ninja</a> · <a href="snake.html">Play Snake</a>
+    </div>
+  </div>
+
+  <script>
+    // ============ STORIES ============
+    const STORIES = {
+      dragon: {
+        title: "Dragon Quest",
+        scenes: {
+          start: {
+            image: "🏰",
+            text: {
+              young: "You live in a castle. One day, a friendly dragon lands in the garden! What do you do?",
+              older: "You're a young knight living in a peaceful castle. One morning, you wake up to find a magnificent dragon has landed in the royal garden. The guards are scared, but the dragon seems... friendly? What do you do?"
+            },
+            choices: [
+              { text: { young: "Say hello to the dragon", older: "Approach the dragon carefully and greet it" }, next: "friend", points: 10 },
+              { text: { young: "Hide under your bed", older: "Hide and watch from your window" }, next: "hide", points: 0 },
+              { text: { young: "Bring the dragon some food", older: "Fetch some food from the kitchen for the dragon" }, next: "food", points: 15, item: "dragon snack" }
+            ]
+          },
+          friend: {
+            image: "🐉",
+            text: {
+              young: "The dragon smiles! It wants to show you something. It points to a mountain far away.",
+              older: "The dragon bows its head in greeting! It seems excited and keeps looking toward the distant mountains. It nudges you gently, as if asking you to follow."
+            },
+            choices: [
+              { text: { young: "Climb on the dragon's back", older: "Accept the invitation and climb onto the dragon's back" }, next: "fly", points: 20, item: "dragon scale" },
+              { text: { young: "Ask what's on the mountain", older: "Try to communicate and ask what's on the mountain" }, next: "ask", points: 10 }
+            ]
+          },
+          hide: {
+            image: "🛏️",
+            text: {
+              young: "You hide, but then hear the dragon crying! It sounds sad and lost.",
+              older: "From your hiding spot, you hear a strange sound. The dragon is making soft, sad noises. It seems lost and alone, far from home."
+            },
+            choices: [
+              { text: { young: "Go help the sad dragon", older: "Overcome your fear and go help the dragon" }, next: "friend", points: 15 },
+              { text: { young: "Tell a guard about the dragon", older: "Alert the guards to help the dragon" }, next: "guards", points: 5 }
+            ]
+          },
+          food: {
+            image: "🍖",
+            text: {
+              young: "The dragon loves the food! It does a happy dance and becomes your best friend!",
+              older: "The dragon's eyes light up when it sees the food! It eats happily and then nuzzles against you. You've made a powerful friend!"
+            },
+            choices: [
+              { text: { young: "Ask if you can go for a ride", older: "Ask if the dragon will take you on an adventure" }, next: "fly", points: 20 },
+              { text: { young: "Play with the dragon", older: "Spend time playing with your new friend" }, next: "play", points: 15, item: "friendship bracelet" }
+            ]
+          },
+          guards: {
+            image: "⚔️",
+            text: {
+              young: "The guards want to scare the dragon away! But you see it's just scared too.",
+              older: "The guards arrive with spears, but the dragon cowers in fear. You realize the dragon is just as scared as everyone else."
+            },
+            choices: [
+              { text: { young: "Stand between them and the dragon", older: "Bravely stand between the guards and dragon" }, next: "brave", points: 25, item: "medal of courage" },
+              { text: { young: "Ask the guards to be nice", older: "Convince the guards to lower their weapons" }, next: "peace", points: 20 }
+            ]
+          },
+          ask: {
+            image: "🗣️",
+            text: {
+              young: "The dragon draws a picture in the dirt. It shows a baby dragon stuck on the mountain!",
+              older: "The dragon uses its claw to draw in the dirt. You see a picture of a small dragon trapped on a mountain. It's asking for your help!"
+            },
+            choices: [
+              { text: { young: "Let's go save the baby dragon!", older: "Agree to help rescue the baby dragon" }, next: "fly", points: 20 },
+              { text: { young: "Get help from the castle", older: "Gather supplies and helpers from the castle first" }, next: "prepare", points: 15, item: "rope" }
+            ]
+          },
+          fly: {
+            image: "☁️",
+            text: {
+              young: "WHOOSH! You fly through the clouds! It's amazing! You see the whole kingdom below!",
+              older: "The dragon soars into the sky! Wind rushes past your face as you fly through fluffy clouds. Below, the kingdom looks like a tiny toy village. It's incredible!"
+            },
+            choices: [
+              { text: { young: "Yell 'THIS IS THE BEST DAY EVER!'", older: "Shout with joy at this amazing experience" }, next: "mountain", points: 15 },
+              { text: { young: "Look for the baby dragon", older: "Scan the mountains for the baby dragon" }, next: "mountain", points: 20 }
+            ]
+          },
+          play: {
+            image: "🎾",
+            text: {
+              young: "You play catch with the dragon using a big ball! The dragon is very good at it!",
+              older: "You spend the afternoon playing games with the dragon. It's surprisingly gentle and playful. The whole castle comes to watch!"
+            },
+            choices: [
+              { text: { young: "Teach the dragon a trick", older: "Teach the dragon some fun tricks" }, next: "tricks", points: 15 },
+              { text: { young: "Take a nap together", older: "Rest together under a tree" }, next: "rest", points: 10, health: 1 }
+            ]
+          },
+          brave: {
+            image: "🛡️",
+            text: {
+              young: "Everyone is amazed how brave you are! The king himself comes to see what's happening!",
+              older: "Your bravery stuns everyone! The king comes down from the castle to see the young knight who stood up for a dragon."
+            },
+            choices: [
+              { text: { young: "Tell the king the dragon is nice", older: "Explain to the king that the dragon means no harm" }, next: "peace", points: 20 },
+              { text: { young: "Ask the king to help the dragon", older: "Request the king's help for the dragon's mission" }, next: "prepare", points: 25, item: "royal decree" }
+            ]
+          },
+          peace: {
+            image: "🤝",
+            text: {
+              young: "Everyone becomes friends! The dragon is so happy it cries sparkly tears!",
+              older: "Peace is made between the kingdom and the dragon. The dragon sheds tears of joy that sparkle like diamonds in the sunlight."
+            },
+            choices: [
+              { text: { young: "Catch a sparkly tear", older: "Collect one of the magical tears" }, next: "mountain", points: 15, item: "dragon tear" },
+              { text: { young: "Give the dragon a big hug", older: "Embrace your new dragon friend" }, next: "mountain", points: 20 }
+            ]
+          },
+          prepare: {
+            image: "🎒",
+            text: {
+              young: "You pack a bag with snacks and a rope. You're ready for adventure!",
+              older: "You gather supplies: rope, food, a warm blanket, and a map. The castle folk wish you luck on your quest!"
+            },
+            choices: [
+              { text: { young: "Let's go to the mountain!", older: "Set off toward the mountain with the dragon" }, next: "fly", points: 15 }
+            ]
+          },
+          tricks: {
+            image: "🎪",
+            text: {
+              young: "The dragon learns to blow heart-shaped smoke rings! Everyone claps!",
+              older: "The dragon is a quick learner! Soon it can blow colorful smoke rings and do loop-de-loops. It's like having your own circus!"
+            },
+            choices: [
+              { text: { young: "Put on a show for everyone", older: "Organize a show for the whole kingdom" }, next: "show", points: 20 },
+              { text: { young: "Teach one more trick", older: "Try teaching an advanced trick" }, next: "mountain", points: 15 }
+            ]
+          },
+          rest: {
+            image: "😴",
+            text: {
+              young: "You have a nice nap. The dragon keeps you warm with its soft breath.",
+              older: "You rest peacefully against the dragon's warm scales. Its gentle breathing is like a lullaby. You wake up feeling refreshed!"
+            },
+            choices: [
+              { text: { young: "Time for an adventure now!", older: "Suggest going on an adventure together" }, next: "fly", points: 15 }
+            ]
+          },
+          show: {
+            image: "🎭",
+            text: {
+              young: "The whole kingdom watches your show! The dragon is a STAR!",
+              older: "People come from far and wide to see your amazing dragon show! The dragon performs beautifully and takes a bow!"
+            },
+            choices: [
+              { text: { young: "Take a bow together", older: "Share the spotlight with your dragon friend" }, next: "mountain", points: 20 }
+            ]
+          },
+          mountain: {
+            image: "🏔️",
+            text: {
+              young: "You reach the mountain! There's a cave at the top. You hear tiny dragon sounds inside!",
+              older: "The mountain is tall and rocky. Near the top, you spot a cave entrance. From inside, you hear small squeaks and chirps - it must be the baby dragon!"
+            },
+            choices: [
+              { text: { young: "Go into the cave", older: "Enter the cave to find the baby" }, next: "cave", points: 15 },
+              { text: { young: "Call out to the baby dragon", older: "Call out to let the baby know help has arrived" }, next: "call", points: 10 }
+            ]
+          },
+          cave: {
+            image: "🕯️",
+            text: {
+              young: "The cave is dark but your dragon friend lights the way with its glowing scales!",
+              older: "Inside, the cave is pitch black. But your dragon companion's scales begin to glow softly, lighting your path through the winding tunnels."
+            },
+            choices: [
+              { text: { young: "Follow the little sounds", older: "Follow the sounds deeper into the cave" }, next: "rescue", points: 20 },
+              { text: { young: "Look for treasure too!", older: "Keep an eye out for any cave treasures" }, next: "treasure", points: 15, item: "gemstone" }
+            ]
+          },
+          call: {
+            image: "📢",
+            text: {
+              young: "The baby dragon hears you! It comes running out... but it's stuck in some vines!",
+              older: "A tiny head pokes out from the cave! But the baby dragon is tangled in thick vines and can't get free."
+            },
+            choices: [
+              { text: { young: "Help untangle the baby", older: "Carefully help free the baby dragon" }, next: "rescue", points: 20 },
+              { text: { young: "Ask big dragon to help", older: "Get the parent dragon to help" }, next: "rescue", points: 15 }
+            ]
+          },
+          treasure: {
+            image: "💎",
+            text: {
+              young: "WOW! You find a room full of sparkly gems! But the baby dragon is more important!",
+              older: "You discover a small chamber filled with glittering treasures! But you remember why you're here - the baby dragon needs help."
+            },
+            choices: [
+              { text: { young: "Take one gem, then find the baby", older: "Pocket a small gem as a souvenir, then continue the rescue" }, next: "rescue", points: 15 },
+              { text: { young: "Leave the treasure, save the baby!", older: "Ignore the treasure and focus on the rescue mission" }, next: "rescue", points: 25 }
+            ]
+          },
+          rescue: {
+            image: "🐣",
+            text: {
+              young: "You found the baby dragon! It's so cute and small! The big dragon is SO happy!",
+              older: "There it is - a tiny dragon with big eyes, no bigger than a puppy! When the parent dragon sees its baby, it roars with joy!"
+            },
+            choices: [
+              { text: { young: "Hug the baby dragon!", older: "Give the baby dragon a gentle hug" }, next: "ending", points: 30 },
+              { text: { young: "Fly everyone home!", older: "Help reunite the dragon family and fly home" }, next: "ending", points: 25 }
+            ]
+          },
+          ending: {
+            image: "🎉",
+            text: {
+              young: "YOU DID IT! The dragons are a family again! They make you an honorary dragon!",
+              older: "Congratulations, brave adventurer! You've reunited the dragon family! As thanks, they name you an official Friend of Dragons - a hero of the realm!"
+            },
+            choices: [],
+            ending: true,
+            endingType: "win"
+          }
+        }
+      },
+
+      space: {
+        title: "Space Mission",
+        scenes: {
+          start: {
+            image: "🚀",
+            text: {
+              young: "You're an astronaut! Your rocket is ready to go to space! 3... 2... 1...",
+              older: "You're a young astronaut about to launch on your first mission! Mission Control counts down: 3... 2... 1... LIFTOFF!"
+            },
+            choices: [
+              { text: { young: "BLAST OFF!", older: "Blast off into space!" }, next: "space", points: 10 },
+              { text: { young: "Check your helmet first", older: "Do one final safety check" }, next: "check", points: 15, item: "lucky patch" }
+            ]
+          },
+          check: {
+            image: "👨‍🚀",
+            text: {
+              young: "Good thinking! Your helmet is on tight. You find a lucky sticker too!",
+              older: "Smart move! You double-check all systems. Everything is perfect, and you find a lucky mission patch that previous astronauts left behind."
+            },
+            choices: [
+              { text: { young: "NOW blast off!", older: "Now you're ready - initiate launch!" }, next: "space", points: 15 }
+            ]
+          },
+          space: {
+            image: "🌍",
+            text: {
+              young: "WOW! You can see Earth from your window! It's so pretty and blue!",
+              older: "Amazing! Through your window, Earth glows blue and green below. Clouds swirl like cotton candy over the oceans. It's beautiful!"
+            },
+            choices: [
+              { text: { young: "Take a photo", older: "Take photos to show everyone back home" }, next: "photo", points: 10, item: "space photo" },
+              { text: { young: "Float around!", older: "Unbuckle and experience zero gravity" }, next: "float", points: 15 },
+              { text: { young: "Look for aliens", older: "Scan for signs of alien life" }, next: "scan", points: 10 }
+            ]
+          },
+          photo: {
+            image: "📸",
+            text: {
+              young: "CLICK! You take the best photo ever! Wait... what's that blinking light?",
+              older: "You capture stunning photos! But as you're taking pictures, you notice a strange blinking light nearby in space..."
+            },
+            choices: [
+              { text: { young: "Fly toward the light", older: "Investigate the mysterious light" }, next: "mystery", points: 15 },
+              { text: { young: "Tell Mission Control", older: "Report the anomaly to Mission Control" }, next: "report", points: 10 }
+            ]
+          },
+          float: {
+            image: "🤸",
+            text: {
+              young: "WHEEEE! You float and do flips! Zero gravity is SO COOL!",
+              older: "You float weightlessly through the cabin, doing somersaults! Your snacks float by your head - this is incredible!"
+            },
+            choices: [
+              { text: { young: "Catch a floating cookie", older: "Catch your floating snacks" }, next: "snack", points: 10, health: 1 },
+              { text: { young: "Look out the window", older: "Float to the window for a better view" }, next: "scan", points: 10 }
+            ]
+          },
+          scan: {
+            image: "📡",
+            text: {
+              young: "You look really hard... and see something shiny flying toward you!",
+              older: "Your scanner picks up something unusual - a small, shiny object is approaching your ship! It doesn't look like any satellite you know..."
+            },
+            choices: [
+              { text: { young: "Wave at it!", older: "Try to communicate with it" }, next: "alien", points: 20 },
+              { text: { young: "Hide behind your seat", older: "Take defensive precautions" }, next: "careful", points: 10 }
+            ]
+          },
+          snack: {
+            image: "🍪",
+            text: {
+              young: "Yummy! Space cookies are the best! You feel ready for anything!",
+              older: "You catch your snacks and enjoy a zero-gravity meal. The food tastes even better in space!"
+            },
+            choices: [
+              { text: { young: "Now explore more!", older: "Continue your space exploration" }, next: "scan", points: 10 }
+            ]
+          },
+          mystery: {
+            image: "❓",
+            text: {
+              young: "The light is coming from a tiny spaceship! It's so small and cute!",
+              older: "As you approach, you see it's a small spacecraft - much smaller than yours. It looks... friendly?"
+            },
+            choices: [
+              { text: { young: "Say hello", older: "Attempt to make contact" }, next: "alien", points: 20 },
+              { text: { young: "Follow it", older: "Follow the craft carefully" }, next: "follow", points: 15 }
+            ]
+          },
+          report: {
+            image: "📻",
+            text: {
+              young: "Mission Control says 'That's an alien ship! Be friendly!'",
+              older: "Mission Control is excited! 'This could be first contact with alien life! Proceed with caution, but be welcoming!'"
+            },
+            choices: [
+              { text: { young: "Wave at the aliens!", older: "Attempt peaceful first contact" }, next: "alien", points: 20 }
+            ]
+          },
+          careful: {
+            image: "🛡️",
+            text: {
+              young: "You hide, but then hear a tiny voice saying 'Hello? Friend?'",
+              older: "You prepare for anything, but then you hear a small voice through your radio: 'Hello? We come in peace. Friend?'"
+            },
+            choices: [
+              { text: { young: "Say 'Yes, friend!'", older: "Respond with a friendly greeting" }, next: "alien", points: 20 },
+              { text: { young: "Peek out carefully", older: "Cautiously reveal yourself" }, next: "alien", points: 15 }
+            ]
+          },
+          follow: {
+            image: "🛸",
+            text: {
+              young: "The tiny ship leads you to a SPACE STATION hidden behind the moon!",
+              older: "The small craft guides you around the moon, where an amazing space station is hidden! It's covered in colorful lights!"
+            },
+            choices: [
+              { text: { young: "Go inside!", older: "Accept the invitation to dock" }, next: "station", points: 20 }
+            ]
+          },
+          alien: {
+            image: "👽",
+            text: {
+              young: "A cute little alien waves at you! It's green and has three eyes! It looks friendly!",
+              older: "An alien appears in the window of the small ship! It's small and green with three friendly eyes. It waves at you with four arms!"
+            },
+            choices: [
+              { text: { young: "Wave back!", older: "Return the friendly wave" }, next: "friends", points: 20, item: "alien friendship badge" },
+              { text: { young: "Show them your snacks", older: "Offer to share your space snacks" }, next: "share", points: 25 }
+            ]
+          },
+          friends: {
+            image: "🤝",
+            text: {
+              young: "The alien is SO happy! It does a little dance! You have a new friend!",
+              older: "The alien beams with joy! It does a happy dance in zero gravity. You've just made humanity's first alien friend!"
+            },
+            choices: [
+              { text: { young: "Learn their dance", older: "Learn the alien's happy dance" }, next: "dance", points: 15 },
+              { text: { young: "Show them Earth", older: "Point out Earth and tell them about your home" }, next: "teach", points: 15 }
+            ]
+          },
+          share: {
+            image: "🍕",
+            text: {
+              young: "The alien LOVES your snacks! It shares some purple space candy with you!",
+              older: "The alien tries your space food and loves it! In return, it shares some glowing purple candy from its planet. It's delicious!"
+            },
+            choices: [
+              { text: { young: "Trade more snacks!", older: "Have a space food exchange party" }, next: "party", points: 20, item: "space candy" }
+            ]
+          },
+          dance: {
+            image: "💃",
+            text: {
+              young: "You learn the alien dance! Spin, wiggle, float! It's super fun!",
+              older: "You learn the alien's traditional greeting dance! It involves spinning, floating, and making silly faces. You're doing great!"
+            },
+            choices: [
+              { text: { young: "Teach them YOUR dance", older: "Teach the alien an Earth dance" }, next: "party", points: 15 }
+            ]
+          },
+          teach: {
+            image: "🌍",
+            text: {
+              young: "The alien loves hearing about Earth! Dogs, ice cream, rainbows - amazing!",
+              older: "The alien is fascinated by Earth! You tell them about oceans, forests, animals, and music. They can't believe how wonderful it sounds!"
+            },
+            choices: [
+              { text: { young: "Invite them to visit!", older: "Invite the alien to visit Earth someday" }, next: "invite", points: 20 }
+            ]
+          },
+          party: {
+            image: "🎉",
+            text: {
+              young: "You have a space party! Dancing and snacks! Best day ever!",
+              older: "You throw an intergalactic party! There's dancing, snacks from two worlds, and lots of laughing. This is history being made - with fun!"
+            },
+            choices: [
+              { text: { young: "Give your alien friend a hug", older: "Embrace your new friend in a historic moment" }, next: "station", points: 20 }
+            ]
+          },
+          invite: {
+            image: "🎫",
+            text: {
+              young: "The alien is SO excited! 'Yes! Yes! I want to see dogs!'",
+              older: "The alien bounces with excitement! 'Really? I can visit? I want to see the oceans and meet the dogs you told me about!'"
+            },
+            choices: [
+              { text: { young: "Let's go NOW!", older: "Offer to take them to Earth right away" }, next: "gohome", points: 25 },
+              { text: { young: "Visit THEIR planet first!", older: "Ask to visit their planet first" }, next: "station", points: 25 }
+            ]
+          },
+          station: {
+            image: "🏠",
+            text: {
+              young: "The alien takes you to their space home! Everything floats and glows!",
+              older: "The alien brings you to their space station. It's incredible - plants that glow, floating furniture, and windows showing distant galaxies!"
+            },
+            choices: [
+              { text: { young: "Play with alien toys", older: "Try out their amazing technology" }, next: "play", points: 15, item: "alien toy" },
+              { text: { young: "Meet more aliens", older: "Meet the rest of the alien family" }, next: "family", points: 20 }
+            ]
+          },
+          play: {
+            image: "🎮",
+            text: {
+              young: "Alien toys are AMAZING! A ball that changes color! A puzzle that floats!",
+              older: "Their toys are incredible! A ball that changes color when you touch it, puzzles that float and rearrange themselves, games you control with your mind!"
+            },
+            choices: [
+              { text: { young: "Take a toy home to share", older: "Ask if you can bring a toy back to Earth" }, next: "gift", points: 15 }
+            ]
+          },
+          family: {
+            image: "👨‍👩‍👧‍👦",
+            text: {
+              young: "There are little aliens, big aliens, and one REALLY old wise alien!",
+              older: "You meet the whole alien family! There are children your age, parents, and an ancient elder with six eyes who smiles kindly at you."
+            },
+            choices: [
+              { text: { young: "Tell them about YOUR family", older: "Share stories about Earth families" }, next: "stories", points: 15 },
+              { text: { young: "Play with the alien kids", older: "Join the young aliens in a game" }, next: "gift", points: 20 }
+            ]
+          },
+          stories: {
+            image: "📚",
+            text: {
+              young: "They love your stories! The wise old alien says you're very special!",
+              older: "The aliens gather to hear about Earth. The elder says, 'You have a good heart, young one. Our peoples will be friends forever.'"
+            },
+            choices: [
+              { text: { young: "Promise to come back", older: "Promise to return and bring more friends" }, next: "gohome", points: 20, item: "alien compass" }
+            ]
+          },
+          gift: {
+            image: "🎁",
+            text: {
+              young: "The aliens give you a special present! A glowing stone that shows your happy memories!",
+              older: "The alien family presents you with a gift - a crystal that glows and shows your happiest memories when you hold it."
+            },
+            choices: [
+              { text: { young: "Give them something too!", older: "Offer a gift from Earth in return" }, next: "gohome", points: 25, item: "memory crystal" }
+            ]
+          },
+          gohome: {
+            image: "🌍",
+            text: {
+              young: "Time to go home! But now you have friends in space! You'll be back!",
+              older: "It's time to return to Earth, but this isn't goodbye - it's just 'see you later.' You've made friends across the stars!"
+            },
+            choices: [
+              { text: { young: "Wave goodbye for now", older: "Say farewell and head home as a hero" }, next: "ending", points: 30 }
+            ]
+          },
+          ending: {
+            image: "🏆",
+            text: {
+              young: "YOU DID IT! You're the first kid to make alien friends! AMAZING!",
+              older: "Congratulations, Space Explorer! You've completed the most important mission in history - making peace with alien life! You're a hero!"
+            },
+            choices: [],
+            ending: true,
+            endingType: "win"
+          }
+        }
+      },
+
+      pirate: {
+        title: "Pirate Treasure",
+        scenes: {
+          start: {
+            image: "⛵",
+            text: {
+              young: "You find a treasure map in a bottle on the beach! X marks the spot!",
+              older: "While walking on the beach, you discover an old bottle with a yellowed treasure map inside! There's an X marking a spot on a mysterious island!"
+            },
+            choices: [
+              { text: { young: "Find a boat!", older: "Search for a boat to reach the island" }, next: "boat", points: 10 },
+              { text: { young: "Show your friend", older: "Find a friend to join your adventure" }, next: "friend", points: 15, item: "treasure map" }
+            ]
+          },
+          boat: {
+            image: "🚣",
+            text: {
+              young: "You find a little rowboat! It has oars and everything!",
+              older: "You find an old but sturdy rowboat tied to the dock. It's perfect for reaching the island!"
+            },
+            choices: [
+              { text: { young: "Row to the island!", older: "Set sail for adventure!" }, next: "sailing", points: 15 },
+              { text: { young: "Pack some snacks first", older: "Gather supplies before leaving" }, next: "supplies", points: 10, item: "snacks" }
+            ]
+          },
+          friend: {
+            image: "🧑‍🤝‍🧑",
+            text: {
+              young: "Your best friend wants to come! Two treasure hunters are better than one!",
+              older: "Your best friend is excited to join! 'A treasure hunt? I'm in! We'll be the greatest pirates ever!'"
+            },
+            choices: [
+              { text: { young: "Find a boat together", older: "Search for a boat as a team" }, next: "boat", points: 15 }
+            ]
+          },
+          supplies: {
+            image: "🎒",
+            text: {
+              young: "You pack sandwiches, juice, and a flashlight. Ready!",
+              older: "You gather everything you might need: food, water, a flashlight, rope, and a compass. Now you're prepared for anything!"
+            },
+            choices: [
+              { text: { young: "NOW let's go!", older: "Time to set sail!" }, next: "sailing", points: 10, item: "compass" }
+            ]
+          },
+          sailing: {
+            image: "🌊",
+            text: {
+              young: "Splash! Splash! You row across the waves. The island is getting closer!",
+              older: "You row across the sparkling water. Dolphins swim alongside your boat! The mysterious island grows larger on the horizon."
+            },
+            choices: [
+              { text: { young: "Wave at the dolphins!", older: "Take a moment to enjoy the dolphins" }, next: "dolphins", points: 10 },
+              { text: { young: "Row faster!", older: "Keep focused and row faster" }, next: "island", points: 15 }
+            ]
+          },
+          dolphins: {
+            image: "🐬",
+            text: {
+              young: "The dolphins do flips! One splashes you! Hehe!",
+              older: "The dolphins perform tricks, jumping and spinning! One playfully splashes you with its tail. What a magical moment!"
+            },
+            choices: [
+              { text: { young: "Follow them to the island", older: "Let the dolphins guide you to shore" }, next: "island", points: 15 }
+            ]
+          },
+          island: {
+            image: "🏝️",
+            text: {
+              young: "You made it! The island has palm trees and a big rocky hill!",
+              older: "You reach the island! It's beautiful - golden sand, swaying palm trees, and a tall rocky hill in the center."
+            },
+            choices: [
+              { text: { young: "Check the map!", older: "Consult your treasure map" }, next: "map", points: 10 },
+              { text: { young: "Explore the beach", older: "Search the beach for clues" }, next: "beach", points: 15 }
+            ]
+          },
+          map: {
+            image: "🗺️",
+            text: {
+              young: "The map says: 'Start at the palm tree that looks like a Y!'",
+              older: "The map shows a path starting from a Y-shaped palm tree, leading through a cave to the X!"
+            },
+            choices: [
+              { text: { young: "Find the Y tree!", older: "Search for the Y-shaped palm tree" }, next: "tree", points: 15 },
+              { text: { young: "Look for footprints", older: "Check for any other clues or tracks" }, next: "tracks", points: 10 }
+            ]
+          },
+          beach: {
+            image: "🏖️",
+            text: {
+              young: "You find a pretty shell! And look - footprints going into the jungle!",
+              older: "While exploring, you find a beautiful shell. You also notice old footprints leading into the jungle!"
+            },
+            choices: [
+              { text: { young: "Follow the footprints", older: "Track the mysterious footprints" }, next: "tracks", points: 15, item: "pretty shell" },
+              { text: { young: "Check the map", older: "Refer back to your map" }, next: "map", points: 10 }
+            ]
+          },
+          tracks: {
+            image: "👣",
+            text: {
+              young: "The footprints go into a spooky jungle! But you're brave!",
+              older: "The footprints lead into the dense jungle. It's a bit dark inside, but you're on the trail of treasure!"
+            },
+            choices: [
+              { text: { young: "Go into the jungle", older: "Follow the trail bravely" }, next: "jungle", points: 15 },
+              { text: { young: "Use your flashlight", older: "Turn on your flashlight and proceed carefully" }, next: "jungle", points: 20 }
+            ]
+          },
+          tree: {
+            image: "🌴",
+            text: {
+              young: "You found it! The Y tree! There are arrows scratched into the bark!",
+              older: "There it is - a palm tree shaped perfectly like a Y! On its trunk, someone carved arrows pointing toward the rocky hill."
+            },
+            choices: [
+              { text: { young: "Follow the arrows!", older: "Follow the arrows toward the hill" }, next: "jungle", points: 15 }
+            ]
+          },
+          jungle: {
+            image: "🌿",
+            text: {
+              young: "Wow! Colorful birds! Funny monkeys! The jungle is amazing!",
+              older: "The jungle is alive with color! Parrots squawk overhead, monkeys swing from vines, and exotic flowers bloom everywhere."
+            },
+            choices: [
+              { text: { young: "Say hi to a monkey", older: "Try to befriend a curious monkey" }, next: "monkey", points: 15 },
+              { text: { young: "Look for the cave", older: "Search for the cave shown on the map" }, next: "cave", points: 20 }
+            ]
+          },
+          monkey: {
+            image: "🐒",
+            text: {
+              young: "The monkey likes you! It has a shiny coin in its paw!",
+              older: "A friendly monkey swings down to meet you! It's holding something shiny - an old gold coin!"
+            },
+            choices: [
+              { text: { young: "Trade a snack for the coin", older: "Offer some food in exchange for the coin" }, next: "coin", points: 20, item: "gold coin" },
+              { text: { young: "Ask monkey to help find treasure", older: "See if the monkey will guide you" }, next: "cave", points: 15 }
+            ]
+          },
+          coin: {
+            image: "🪙",
+            text: {
+              young: "The monkey gives you the coin! It's real pirate gold!",
+              older: "The monkey happily trades the coin for your snack! It's a genuine gold doubloon - treasure is definitely here!"
+            },
+            choices: [
+              { text: { young: "Keep looking for more!", older: "This confirms it - find the main treasure!" }, next: "cave", points: 20 }
+            ]
+          },
+          cave: {
+            image: "🕳️",
+            text: {
+              young: "A dark cave! You can hear dripping water inside. Maybe bats too?",
+              older: "You find the cave entrance! It's dark inside, but you can hear water dripping. The X on your map is somewhere inside..."
+            },
+            choices: [
+              { text: { young: "Go in! You're brave!", older: "Enter the cave with courage" }, next: "inside", points: 20 },
+              { text: { young: "Make a torch first", older: "Find materials to make a torch" }, next: "torch", points: 15, item: "torch" }
+            ]
+          },
+          torch: {
+            image: "🔦",
+            text: {
+              young: "You make a torch with sticks and leaves! Now you can see!",
+              older: "Using sticks and some dry grass, you create a makeshift torch. The warm light pushes back the darkness."
+            },
+            choices: [
+              { text: { young: "Into the cave!", older: "Enter the cave with your torch" }, next: "inside", points: 15 }
+            ]
+          },
+          inside: {
+            image: "💎",
+            text: {
+              young: "The cave sparkles! There are shiny crystals on the walls! And... is that a chest?!",
+              older: "Inside the cave, crystals embedded in the walls glitter in your light. And there - in a small chamber - sits an old wooden chest!"
+            },
+            choices: [
+              { text: { young: "Open the chest!", older: "Rush to open the treasure chest" }, next: "chest", points: 25 },
+              { text: { young: "Check for traps first", older: "Carefully check for any traps" }, next: "careful", points: 20 }
+            ]
+          },
+          careful: {
+            image: "🔍",
+            text: {
+              young: "Good thinking! There's a wobbly rock. You step around it!",
+              older: "Smart thinking! You notice a pressure plate on the floor. Carefully stepping around it, you reach the chest safely."
+            },
+            choices: [
+              { text: { young: "NOW open it!", older: "Open the chest safely" }, next: "chest", points: 25 }
+            ]
+          },
+          chest: {
+            image: "📦",
+            text: {
+              young: "CLICK! The chest opens! Inside there's GOLD COINS, JEWELS, and a CROWN!",
+              older: "The old lock clicks open! Inside: piles of gold coins, glittering jewels, a beautiful crown, and a note from the pirate who hid it!"
+            },
+            choices: [
+              { text: { young: "Read the note!", older: "Read the pirate's note" }, next: "note", points: 15 },
+              { text: { young: "Try on the crown!", older: "Try wearing the crown" }, next: "crown", points: 20, item: "pirate crown" }
+            ]
+          },
+          note: {
+            image: "📜",
+            text: {
+              young: "The note says: 'To whoever finds this - you are now a TRUE PIRATE!'",
+              older: "The note reads: 'Congratulations, brave adventurer! If you found this, you have the heart of a true pirate. This treasure is now yours!'"
+            },
+            choices: [
+              { text: { young: "I'M A PIRATE!", older: "Accept your new title as a true pirate" }, next: "ending", points: 30 }
+            ]
+          },
+          crown: {
+            image: "👑",
+            text: {
+              young: "The crown fits perfectly! You look like a PIRATE KING!",
+              older: "The crown fits perfectly on your head! You feel like royalty - the king or queen of the pirates!"
+            },
+            choices: [
+              { text: { young: "Take the treasure home!", older: "Claim your treasure and head home victorious" }, next: "ending", points: 30 }
+            ]
+          },
+          ending: {
+            image: "🏴‍☠️",
+            text: {
+              young: "YAY! You found the treasure! You're the greatest pirate EVER!",
+              older: "Congratulations, Pirate Champion! You've found legendary treasure! Songs will be sung about your adventure for years to come!"
+            },
+            choices: [],
+            ending: true,
+            endingType: "win"
+          }
+        }
+      },
+
+      jungle: {
+        title: "Jungle Explorer",
+        scenes: {
+          start: {
+            image: "🌴",
+            text: {
+              young: "You're an explorer in a BIG jungle! You hear animal sounds all around!",
+              older: "You're deep in an unexplored jungle! Exotic sounds fill the air - bird calls, monkey chatter, and mysterious rustling in the bushes."
+            },
+            choices: [
+              { text: { young: "Follow the bird sounds", older: "Track the colorful birds you hear" }, next: "birds", points: 10 },
+              { text: { young: "Look for animal footprints", older: "Search for animal tracks to follow" }, next: "tracks", points: 15 },
+              { text: { young: "Climb a tree to look around", older: "Climb a tall tree to get your bearings" }, next: "climb", points: 15 }
+            ]
+          },
+          birds: {
+            image: "🦜",
+            text: {
+              young: "WOW! A rainbow bird! It's red, blue, yellow, AND green!",
+              older: "You find a spectacular parrot with feathers of every color! It tilts its head and seems to be studying you curiously."
+            },
+            choices: [
+              { text: { young: "Wave at the bird", older: "Try to communicate with the parrot" }, next: "parrot", points: 15 },
+              { text: { young: "Follow where it flies", older: "Follow the parrot as it takes flight" }, next: "waterfall", points: 20 }
+            ]
+          },
+          tracks: {
+            image: "🐾",
+            text: {
+              young: "Big paw prints! They go toward a river! What could it be?",
+              older: "You find large paw prints in the mud! They're fresh and lead toward the sound of running water."
+            },
+            choices: [
+              { text: { young: "Follow them carefully", older: "Cautiously track the animal" }, next: "river", points: 15 },
+              { text: { young: "Take a picture of the prints", older: "Document the tracks for your research" }, next: "river", points: 20, item: "track photo" }
+            ]
+          },
+          climb: {
+            image: "🌳",
+            text: {
+              young: "You climb up high! You can see a sparkly waterfall and a hidden cave!",
+              older: "From the treetop, you spot a magnificent waterfall in the distance, and what looks like a hidden cave behind the vines!"
+            },
+            choices: [
+              { text: { young: "Go to the waterfall!", older: "Head toward the waterfall" }, next: "waterfall", points: 15 },
+              { text: { young: "Check out the cave!", older: "Investigate the mysterious cave" }, next: "cave", points: 20 }
+            ]
+          },
+          parrot: {
+            image: "🗣️",
+            text: {
+              young: "The parrot talks! 'Hello friend! Want to see something cool?' it says!",
+              older: "Amazingly, the parrot speaks! 'Greetings, explorer! I know the jungle's secrets. Want me to show you something special?'"
+            },
+            choices: [
+              { text: { young: "Yes please!", older: "Accept the parrot's offer" }, next: "guide", points: 20, item: "parrot friend" },
+              { text: { young: "Can I give you a snack?", older: "Offer the parrot a treat" }, next: "guide", points: 15 }
+            ]
+          },
+          river: {
+            image: "🏞️",
+            text: {
+              young: "A beautiful river! And there's a TIGER drinking water! It sees you!",
+              older: "You reach a crystal-clear river. A majestic tiger is drinking from the water's edge! It notices you and freezes."
+            },
+            choices: [
+              { text: { young: "Stay very still", older: "Remain completely still and calm" }, next: "tiger", points: 20 },
+              { text: { young: "Slowly wave hello", older: "Make a slow, non-threatening gesture" }, next: "tiger", points: 15 }
+            ]
+          },
+          tiger: {
+            image: "🐯",
+            text: {
+              young: "The tiger looks at you... then goes back to drinking! It's not scary!",
+              older: "The tiger studies you for a long moment, then peacefully returns to drinking. You've just had an incredible wildlife encounter!"
+            },
+            choices: [
+              { text: { young: "Take a photo from far away", older: "Carefully photograph this rare moment" }, next: "photo", points: 20, item: "tiger photo" },
+              { text: { young: "Watch quietly", older: "Simply observe this magnificent creature" }, next: "cross", points: 15 }
+            ]
+          },
+          photo: {
+            image: "📷",
+            text: {
+              young: "CLICK! Best photo ever! The tiger even looks at the camera!",
+              older: "You capture an amazing photo! The tiger even seems to pose, looking directly at your camera with wise eyes."
+            },
+            choices: [
+              { text: { young: "Follow the river", older: "Continue along the riverbank" }, next: "cross", points: 15 }
+            ]
+          },
+          cross: {
+            image: "🌉",
+            text: {
+              young: "There's an old rope bridge! It looks a little wobbly!",
+              older: "An old rope bridge spans the river. It looks worn but still usable. On the other side, you see ancient stone structures!"
+            },
+            choices: [
+              { text: { young: "Cross the bridge carefully", older: "Carefully cross the bridge" }, next: "temple", points: 20 },
+              { text: { young: "Find another way across", older: "Look for a safer crossing" }, next: "wade", points: 15 }
+            ]
+          },
+          wade: {
+            image: "🚶",
+            text: {
+              young: "You find a shallow spot! The water tickles your feet!",
+              older: "You find a shallow section where you can wade across. The cool water is refreshing!"
+            },
+            choices: [
+              { text: { young: "Splash across!", older: "Cross through the water" }, next: "temple", points: 15 }
+            ]
+          },
+          waterfall: {
+            image: "💧",
+            text: {
+              young: "WHOOOOSH! The waterfall is SO big! There's a rainbow in the mist!",
+              older: "The waterfall is breathtaking! Water cascades down from high cliffs, creating a permanent rainbow in the misty spray."
+            },
+            choices: [
+              { text: { young: "Walk through the rainbow!", older: "Walk through the beautiful mist" }, next: "behind", points: 15 },
+              { text: { young: "Look behind the waterfall", older: "Check if there's something behind the falls" }, next: "behind", points: 20 }
+            ]
+          },
+          behind: {
+            image: "✨",
+            text: {
+              young: "There's a secret cave behind the waterfall! It has sparkly walls!",
+              older: "Behind the waterfall is a hidden cave! The walls are covered in glittering minerals that catch the light beautifully."
+            },
+            choices: [
+              { text: { young: "Go inside!", older: "Explore the hidden cave" }, next: "cave", points: 20, item: "crystal" }
+            ]
+          },
+          guide: {
+            image: "🦜",
+            text: {
+              young: "The parrot flies ahead and waits for you! 'This way!' it says.",
+              older: "The parrot flies from branch to branch, always waiting for you to catch up. 'Follow me, explorer!'"
+            },
+            choices: [
+              { text: { young: "Follow the parrot!", older: "Follow your colorful guide" }, next: "temple", points: 20 }
+            ]
+          },
+          cave: {
+            image: "🦇",
+            text: {
+              young: "The cave has friendly bats! And old drawings on the walls!",
+              older: "Fruit bats hang peacefully from the ceiling. The walls are covered in ancient paintings of animals and people!"
+            },
+            choices: [
+              { text: { young: "Look at the pictures", older: "Study the ancient cave art" }, next: "paintings", points: 15 },
+              { text: { young: "Go deeper in the cave", older: "Explore deeper into the cave" }, next: "deep", points: 20 }
+            ]
+          },
+          paintings: {
+            image: "🎨",
+            text: {
+              young: "The drawings show people finding a golden temple! Is it real?!",
+              older: "The ancient art depicts people discovering a magnificent golden temple! Could it still exist somewhere in this jungle?"
+            },
+            choices: [
+              { text: { young: "Search for the temple!", older: "Use the paintings as a clue to find the temple" }, next: "temple", points: 20 }
+            ]
+          },
+          deep: {
+            image: "💎",
+            text: {
+              young: "WOAH! The cave opens up into a HUGE room full of gems!",
+              older: "The tunnel opens into an enormous cavern! Thousands of crystals cover the walls, ceiling, and floor, glowing with inner light!"
+            },
+            choices: [
+              { text: { young: "Touch a crystal", older: "Carefully examine the crystals" }, next: "crystal", points: 15, item: "glowing crystal" },
+              { text: { young: "Find where the light comes from", older: "Follow the source of the strange light" }, next: "temple", points: 20 }
+            ]
+          },
+          crystal: {
+            image: "🔮",
+            text: {
+              young: "The crystal feels warm and tingly! It lights up when you hold it!",
+              older: "When you touch the crystal, it warms in your hand and begins to glow brighter! It seems to resonate with your energy."
+            },
+            choices: [
+              { text: { young: "Keep exploring with your crystal!", older: "Use the glowing crystal to light your way forward" }, next: "temple", points: 20 }
+            ]
+          },
+          temple: {
+            image: "🏛️",
+            text: {
+              young: "WOW!!! A golden temple hidden in the jungle! It's so beautiful!",
+              older: "Incredible! Through the jungle emerges an ancient golden temple! Vines and flowers have grown over it, but its beauty is undeniable!"
+            },
+            choices: [
+              { text: { young: "Go inside the temple", older: "Enter the ancient temple" }, next: "inside", points: 20 },
+              { text: { young: "Walk around it first", older: "Circle the temple to examine it" }, next: "around", points: 15 }
+            ]
+          },
+          around: {
+            image: "🗿",
+            text: {
+              young: "There are animal statues all around! A monkey, an elephant, a tiger!",
+              older: "Stone statues of jungle animals guard the temple - a wise monkey, a mighty elephant, and a noble tiger. They seem almost alive!"
+            },
+            choices: [
+              { text: { young: "Say hi to the statues", older: "Pay respects to the guardian statues" }, next: "inside", points: 15 },
+              { text: { young: "Count all the animals", older: "Document all the different animal carvings" }, next: "inside", points: 20, item: "temple sketch" }
+            ]
+          },
+          inside: {
+            image: "👑",
+            text: {
+              young: "Inside the temple is a golden throne! And a chest full of treasures!",
+              older: "The temple interior is magnificent! A golden throne sits at the center, and before it rests an ornate chest filled with ancient treasures!"
+            },
+            choices: [
+              { text: { young: "Sit on the throne!", older: "Take a seat on the ancient throne" }, next: "throne", points: 20, item: "golden feather" },
+              { text: { young: "Look in the treasure chest", older: "Examine the treasure chest" }, next: "treasure", points: 20 }
+            ]
+          },
+          throne: {
+            image: "🪑",
+            text: {
+              young: "You sit down and suddenly all the animals from the jungle appear! They bow to you!",
+              older: "As you sit, something magical happens! Animals from all over the jungle gather at the temple entrance, bowing their heads to you!"
+            },
+            choices: [
+              { text: { young: "Wave to all your animal friends!", older: "Greet your new animal friends graciously" }, next: "ending", points: 30 }
+            ]
+          },
+          treasure: {
+            image: "🏆",
+            text: {
+              young: "The chest has a special medal! It says 'BEST EXPLORER EVER'!",
+              older: "Inside the chest is an ancient medal inscribed: 'To the brave explorer who discovered this place - you are now Guardian of the Jungle!'"
+            },
+            choices: [
+              { text: { young: "Put on the medal proudly!", older: "Accept the title of Jungle Guardian" }, next: "ending", points: 30, item: "explorer medal" }
+            ]
+          },
+          ending: {
+            image: "🌟",
+            text: {
+              young: "YOU DID IT! You're the best jungle explorer! All the animals love you!",
+              older: "Congratulations, Great Explorer! You've discovered the legendary lost temple and become the Guardian of the Jungle! Your adventure will be remembered forever!"
+            },
+            choices: [],
+            ending: true,
+            endingType: "win"
+          }
+        }
+      }
+    };
+
+    // ============ STATE ============
+    const state = {
+      age: null,
+      story: null,
+      currentScene: null,
+      health: 3,
+      points: 0,
+      chapter: 1,
+      inventory: [],
+    };
+
+    // ============ ELEMENTS ============
+    const setupScreen = document.getElementById("setupScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const ageSelect = document.getElementById("ageSelect");
+    const storySelect = document.getElementById("storySelect");
+    const startBtn = document.getElementById("startBtn");
+    const statsBar = document.getElementById("statsBar");
+    const elHealth = document.getElementById("health");
+    const elPoints = document.getElementById("points");
+    const elChapter = document.getElementById("chapter");
+    const elInventory = document.getElementById("inventory");
+    const elStoryImage = document.getElementById("storyImage");
+    const elStoryText = document.getElementById("storyText");
+    const elChoices = document.getElementById("choices");
+    const elResultEmoji = document.getElementById("resultEmoji");
+    const elResultTitle = document.getElementById("resultTitle");
+    const elResultText = document.getElementById("resultText");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+
+    // ============ SETUP ============
+    function updateStartButton() {
+      startBtn.disabled = !(state.age && state.story);
+    }
+
+    ageSelect.querySelectorAll(".setup-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        ageSelect.querySelectorAll(".setup-btn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        state.age = btn.dataset.age;
+        updateStartButton();
+      });
+    });
+
+    storySelect.querySelectorAll(".setup-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        storySelect.querySelectorAll(".setup-btn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        state.story = btn.dataset.story;
+        updateStartButton();
+      });
+    });
+
+    startBtn.addEventListener("click", startGame);
+    playAgainBtn.addEventListener("click", resetGame);
+
+    // ============ GAME ============
+    function startGame() {
+      state.currentScene = "start";
+      state.health = 3;
+      state.points = 0;
+      state.chapter = 1;
+      state.inventory = [];
+
+      setupScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+
+      renderScene();
+    }
+
+    function renderScene() {
+      const storyData = STORIES[state.story];
+      const scene = storyData.scenes[state.currentScene];
+
+      // Update stats
+      elHealth.textContent = state.health;
+      elPoints.textContent = state.points;
+      elChapter.textContent = state.chapter;
+
+      // Update inventory
+      if (state.inventory.length === 0) {
+        elInventory.innerHTML = '<span style="color:var(--muted);font-size:13px;">No items yet</span>';
+      } else {
+        elInventory.innerHTML = state.inventory.map(item =>
+          `<div class="item">📦 ${item}</div>`
+        ).join("");
+      }
+
+      // Update story
+      elStoryImage.textContent = scene.image;
+      elStoryImage.classList.add("pulse");
+      setTimeout(() => elStoryImage.classList.remove("pulse"), 300);
+
+      const text = typeof scene.text === "string" ? scene.text : scene.text[state.age];
+      elStoryText.textContent = text;
+      elStoryText.className = "story-text" + (state.age === "young" ? " young" : "");
+
+      // Check for ending
+      if (scene.ending) {
+        setTimeout(() => showEnding(scene), 1500);
+        elChoices.innerHTML = "";
+        return;
+      }
+
+      // Render choices
+      elChoices.innerHTML = scene.choices.map((choice, i) => {
+        const choiceText = typeof choice.text === "string" ? choice.text : choice.text[state.age];
+        return `<button class="choice-btn ${state.age === "young" ? "young" : ""}" data-index="${i}">${choiceText}</button>`;
+      }).join("");
+
+      elChoices.querySelectorAll(".choice-btn").forEach(btn => {
+        btn.addEventListener("click", () => makeChoice(parseInt(btn.dataset.index)));
+      });
+    }
+
+    function makeChoice(index) {
+      const storyData = STORIES[state.story];
+      const scene = storyData.scenes[state.currentScene];
+      const choice = scene.choices[index];
+
+      // Apply effects
+      if (choice.points) {
+        state.points += choice.points;
+      }
+      if (choice.item) {
+        state.inventory.push(choice.item);
+      }
+      if (choice.health) {
+        state.health = Math.min(5, state.health + choice.health);
+      }
+      if (choice.damage) {
+        state.health -= choice.damage;
+        if (state.health <= 0) {
+          showEnding({ endingType: "lose" });
+          return;
+        }
+      }
+
+      // Move to next scene
+      state.currentScene = choice.next;
+      state.chapter++;
+
+      renderScene();
+    }
+
+    function showEnding(scene) {
+      gameScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      if (scene.endingType === "win") {
+        elResultEmoji.textContent = "🎉";
+        elResultTitle.textContent = "Amazing Adventure!";
+        elResultText.textContent = `You finished the story with ${state.points} points and collected ${state.inventory.length} items! You're a true adventurer!`;
+      } else {
+        elResultEmoji.textContent = "💫";
+        elResultTitle.textContent = "Try Again!";
+        elResultText.textContent = "Every adventurer has setbacks. Want to try again?";
+      }
+    }
+
+    function resetGame() {
+      resultScreen.classList.add("hidden");
+      setupScreen.classList.remove("hidden");
+      state.age = null;
+      state.story = null;
+      ageSelect.querySelectorAll(".setup-btn").forEach(b => b.classList.remove("selected"));
+      storySelect.querySelectorAll(".setup-btn").forEach(b => b.classList.remove("selected"));
+      updateStartButton();
+    }
+  </script>
+</body>
+</html>
