@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Tilt Pong</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111a2e;
+      --text: #eaf0ff;
+      --muted: #9fb0d0;
+      --good: #2dd4bf;
+      --bad: #fb7185;
+      --btn: #1f2a44;
+      --btnHover: #283658;
+      --shadow: rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 10%, #1a2a55 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .wrap {
+      width: min(400px, 100%);
+      display: grid;
+      gap: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      backdrop-filter: blur(6px);
+    }
+    .score-label { color: var(--muted); font-size: 12px; }
+    .score-value { font-size: 24px; font-weight: 900; }
+    .best-value { font-size: 18px; font-weight: 700; color: var(--muted); }
+
+    .card {
+      background: rgba(17,26,46,0.82);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 14px 40px var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    canvas {
+      border-radius: 12px;
+      background: #0a0f1a;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+      touch-action: none;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button.primary, button.secondary {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--btn);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button.primary:active, button.secondary:active { transform: scale(0.98); }
+    button.primary {
+      background: rgba(45,212,191,0.18);
+      border-color: rgba(45,212,191,0.35);
+    }
+
+    .message {
+      text-align: center;
+      font-size: 14px;
+      color: var(--muted);
+      min-height: 40px;
+      line-height: 1.4;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .overlay.hidden { display: none; }
+    .overlay-title {
+      font-size: 28px;
+      font-weight: 900;
+      text-align: center;
+    }
+    .overlay-score {
+      font-size: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .game-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tilt-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .tilt-bar {
+      width: 100px;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .tilt-dot {
+      width: 16px;
+      height: 8px;
+      background: var(--good);
+      border-radius: 4px;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: left 0.05s ease-out;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .footer a {
+      color: var(--good);
+      text-decoration: none;
+    }
+
+    .permission-btn {
+      background: rgba(45,212,191,0.18);
+      border: 1px solid rgba(45,212,191,0.35);
+      color: var(--text);
+      padding: 16px 24px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="score-label">Score</div>
+        <div class="score-value" id="score">0</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="score-label">Best</div>
+        <div class="best-value" id="best">0</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="game-container">
+        <div class="game-wrapper">
+          <canvas id="game" width="320" height="480"></canvas>
+          <div class="overlay" id="overlay">
+            <div class="overlay-title" id="overlayTitle">Tilt Pong</div>
+            <div class="overlay-score" id="overlayText">Tilt your phone to move the paddle.<br>Keep the ball bouncing!</div>
+            <button class="primary" id="startBtn">Play</button>
+          </div>
+        </div>
+
+        <div class="tilt-indicator" id="tiltIndicator">
+          <span>Tilt:</span>
+          <div class="tilt-bar">
+            <div class="tilt-dot" id="tiltDot"></div>
+          </div>
+        </div>
+
+        <div class="message" id="message">Tilt phone left/right to move paddle</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <a href="index.html">Number Ninja</a> · <a href="snake.html">Snake</a> · <a href="adventure.html">Story Quest</a>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Constants ----------
+    const CANVAS_W = 320;
+    const CANVAS_H = 480;
+    const PADDLE_W = 80;
+    const PADDLE_H = 14;
+    const BALL_R = 10;
+    const PADDLE_Y = CANVAS_H - 40;
+
+    // ---------- State ----------
+    const state = {
+      running: false,
+      gameOver: false,
+      score: 0,
+      best: 0,
+      paddleX: CANVAS_W / 2,
+      ballX: CANVAS_W / 2,
+      ballY: CANVAS_H / 2,
+      ballVX: 3,
+      ballVY: 4,
+      tilt: 0,
+      tiltEnabled: false,
+      speed: 1,
+    };
+
+    // ---------- Elements ----------
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const elScore = document.getElementById("score");
+    const elBest = document.getElementById("best");
+    const elMessage = document.getElementById("message");
+    const overlay = document.getElementById("overlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlayText = document.getElementById("overlayText");
+    const startBtn = document.getElementById("startBtn");
+    const tiltDot = document.getElementById("tiltDot");
+    const tiltIndicator = document.getElementById("tiltIndicator");
+
+    // ---------- Storage ----------
+    const BEST_KEY = "tiltpong_best_v1";
+
+    function loadBest() {
+      const saved = Number(localStorage.getItem(BEST_KEY));
+      state.best = Number.isFinite(saved) ? saved : 0;
+      elBest.textContent = String(state.best);
+    }
+
+    function saveBest() {
+      if (state.score > state.best) {
+        state.best = state.score;
+        localStorage.setItem(BEST_KEY, String(state.best));
+        elBest.textContent = String(state.best);
+      }
+    }
+
+    // ---------- Tilt Controls ----------
+    function handleOrientation(e) {
+      // gamma is left/right tilt (-90 to 90)
+      let tilt = e.gamma || 0;
+
+      // Clamp and normalize to -1 to 1
+      tilt = Math.max(-30, Math.min(30, tilt)) / 30;
+      state.tilt = tilt;
+
+      // Update tilt indicator
+      const dotPos = 50 + tilt * 42;
+      tiltDot.style.left = dotPos + "%";
+    }
+
+    async function requestTiltPermission() {
+      // iOS 13+ requires permission
+      if (typeof DeviceOrientationEvent !== "undefined" &&
+          typeof DeviceOrientationEvent.requestPermission === "function") {
+        try {
+          const permission = await DeviceOrientationEvent.requestPermission();
+          if (permission === "granted") {
+            window.addEventListener("deviceorientation", handleOrientation);
+            state.tiltEnabled = true;
+            elMessage.textContent = "Tilt working! Keep the ball alive!";
+            return true;
+          } else {
+            elMessage.textContent = "Tilt denied. Use touch to play.";
+            return false;
+          }
+        } catch (err) {
+          elMessage.textContent = "Tilt error. Use touch to play.";
+          return false;
+        }
+      } else if (window.DeviceOrientationEvent) {
+        // Non-iOS or older iOS
+        window.addEventListener("deviceorientation", handleOrientation);
+        state.tiltEnabled = true;
+        elMessage.textContent = "Tilt to move paddle!";
+        return true;
+      } else {
+        elMessage.textContent = "No tilt sensor. Use touch/mouse.";
+        return false;
+      }
+    }
+
+    // ---------- Touch/Mouse Fallback ----------
+    let touchActive = false;
+
+    canvas.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      state.paddleX = Math.max(PADDLE_W/2, Math.min(CANVAS_W - PADDLE_W/2, x));
+    }, { passive: false });
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (!state.tiltEnabled || !state.running) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        state.paddleX = Math.max(PADDLE_W/2, Math.min(CANVAS_W - PADDLE_W/2, x));
+      }
+    });
+
+    // ---------- Game Logic ----------
+    function initGame() {
+      state.score = 0;
+      state.gameOver = false;
+      state.paddleX = CANVAS_W / 2;
+      state.ballX = CANVAS_W / 2;
+      state.ballY = CANVAS_H / 3;
+      state.ballVX = (Math.random() > 0.5 ? 1 : -1) * 3;
+      state.ballVY = 4;
+      state.speed = 1;
+      elScore.textContent = "0";
+    }
+
+    function update() {
+      if (state.gameOver) return;
+
+      // Update paddle from tilt
+      if (state.tiltEnabled) {
+        const moveSpeed = 12;
+        state.paddleX += state.tilt * moveSpeed;
+        state.paddleX = Math.max(PADDLE_W/2, Math.min(CANVAS_W - PADDLE_W/2, state.paddleX));
+      }
+
+      // Update ball
+      state.ballX += state.ballVX * state.speed;
+      state.ballY += state.ballVY * state.speed;
+
+      // Wall collisions (left/right)
+      if (state.ballX - BALL_R <= 0 || state.ballX + BALL_R >= CANVAS_W) {
+        state.ballVX *= -1;
+        state.ballX = Math.max(BALL_R, Math.min(CANVAS_W - BALL_R, state.ballX));
+      }
+
+      // Top wall
+      if (state.ballY - BALL_R <= 0) {
+        state.ballVY *= -1;
+        state.ballY = BALL_R;
+      }
+
+      // Paddle collision
+      if (state.ballY + BALL_R >= PADDLE_Y &&
+          state.ballY - BALL_R <= PADDLE_Y + PADDLE_H &&
+          state.ballX >= state.paddleX - PADDLE_W/2 &&
+          state.ballX <= state.paddleX + PADDLE_W/2) {
+
+        // Bounce up
+        state.ballVY = -Math.abs(state.ballVY);
+        state.ballY = PADDLE_Y - BALL_R;
+
+        // Add spin based on where ball hit paddle
+        const hitPos = (state.ballX - state.paddleX) / (PADDLE_W/2);
+        state.ballVX += hitPos * 2;
+        state.ballVX = Math.max(-8, Math.min(8, state.ballVX));
+
+        // Score
+        state.score++;
+        elScore.textContent = String(state.score);
+
+        // Speed up gradually
+        if (state.score % 5 === 0) {
+          state.speed = Math.min(2, state.speed + 0.1);
+        }
+      }
+
+      // Bottom - game over
+      if (state.ballY - BALL_R > CANVAS_H) {
+        endGame();
+      }
+    }
+
+    function draw() {
+      // Clear
+      ctx.fillStyle = "#0a0f1a";
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+      // Draw dotted center line
+      ctx.strokeStyle = "rgba(255,255,255,0.1)";
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(0, CANVAS_H / 2);
+      ctx.lineTo(CANVAS_W, CANVAS_H / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw paddle
+      ctx.fillStyle = "#2dd4bf";
+      ctx.beginPath();
+      ctx.roundRect(
+        state.paddleX - PADDLE_W/2,
+        PADDLE_Y,
+        PADDLE_W,
+        PADDLE_H,
+        7
+      );
+      ctx.fill();
+
+      // Draw ball
+      const gradient = ctx.createRadialGradient(
+        state.ballX, state.ballY, 0,
+        state.ballX, state.ballY, BALL_R
+      );
+      gradient.addColorStop(0, "#fff");
+      gradient.addColorStop(1, "#2dd4bf");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(state.ballX, state.ballY, BALL_R, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ball trail effect
+      ctx.fillStyle = "rgba(45, 212, 191, 0.2)";
+      ctx.beginPath();
+      ctx.arc(
+        state.ballX - state.ballVX * 2,
+        state.ballY - state.ballVY * 2,
+        BALL_R * 0.7,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+
+    function gameLoop() {
+      if (!state.running) return;
+
+      update();
+      draw();
+
+      if (!state.gameOver) {
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    async function startGame() {
+      // Request tilt permission on first play
+      if (!state.tiltEnabled) {
+        await requestTiltPermission();
+      }
+
+      initGame();
+      state.running = true;
+      overlay.classList.add("hidden");
+      draw();
+      gameLoop();
+    }
+
+    function endGame() {
+      state.gameOver = true;
+      state.running = false;
+      saveBest();
+
+      overlayTitle.textContent = "Game Over!";
+      overlayText.innerHTML = `Score: ${state.score}<br>Best: ${state.best}`;
+      startBtn.textContent = "Play Again";
+      overlay.classList.remove("hidden");
+    }
+
+    // ---------- Init ----------
+    startBtn.addEventListener("click", startGame);
+
+    loadBest();
+    initGame();
+    draw();
+
+    // Check if tilt might be available
+    if (!window.DeviceOrientationEvent) {
+      tiltIndicator.style.display = "none";
+      elMessage.textContent = "Use mouse/touch to move paddle";
+    }
+  </script>
+</body>
+</html>
