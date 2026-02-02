@@ -418,7 +418,7 @@
       <div class="shop-grid" id="shopGrid"></div>
 
       <div class="footer" style="margin-top:14px;">
-        +10 coins for correct answers, -5 for wrong
+        +10 coins for correct answers, -100 for wrong
       </div>
     </div>
 
@@ -511,6 +511,10 @@
       <button class="secondary" id="settingsBtn">Settings</button>
     </div>
 
+    <div class="footer">
+      <a href="snake.html" style="color:var(--good); text-decoration:none;">Play Snake</a> ·
+      <a href="adventure.html" style="color:var(--good); text-decoration:none;">Story Quest</a>
+    </div>
     <div class="footer">Tap answers. Works offline once saved.</div>
   </div>
 
@@ -1198,8 +1202,8 @@
       } else {
         state.streak = 0;
         updateStreak();
-        addCoins(-5);
-        setStatus(`Oops! It was ${state.correct}. -5`, "flash-bad");
+        addCoins(-100);
+        setStatus(`Oops! It was ${state.correct}. -100`, "flash-bad");
       }
 
       nextRound();
@@ -1262,7 +1266,7 @@
 
       const correct = state.currentResults.filter(r => r.correct).length;
       const total = state.currentResults.length;
-      const coinsEarned = (correct * 10) - ((total - correct) * 5);
+      const coinsEarned = (correct * 10) - ((total - correct) * 100);
       elQuestion.textContent = `Done! ${state.score}`;
       setStatus(`${correct}/${total} correct. ${coinsEarned >= 0 ? "+" : ""}${coinsEarned} coins`, "");
       elChoices.innerHTML = "";
