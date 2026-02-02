@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Times Table Game</title>
+  <title>Number Ninja</title>
   <style>
     :root {
       --bg: #0b1220;
@@ -244,7 +244,7 @@
   </style>
 </head>
 <body>
-  <div class="wrap" role="application" aria-label="Times table game">
+  <div class="wrap" role="application" aria-label="Number Ninja">
     <div class="topbar">
       <div class="pill" aria-live="polite">
         <div>
@@ -927,11 +927,6 @@
         alert("Data cleared!");
       }
     });
-
-    // Prevent accidental double-tap zoom on iOS buttons
-    document.addEventListener("touchend", (e) => {
-      if (e.target instanceof HTMLButtonElement) e.preventDefault();
-    }, { passive: false });
 
     // Init
     loadSettings();
