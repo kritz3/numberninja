@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Times Table Game</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111a2e;
+      --text: #eaf0ff;
+      --muted: #9fb0d0;
+      --good: #2dd4bf;
+      --bad: #fb7185;
+      --warn: #fbbf24;
+      --btn: #1f2a44;
+      --btnHover: #283658;
+      --shadow: rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 10%, #1a2a55 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .wrap {
+      width: min(720px, 100%);
+      display: grid;
+      gap: 14px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .pill {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 30px var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+    .pill .label { color: var(--muted); font-size: 12px; }
+    .pill .value { font-size: 18px; font-weight: 700; }
+
+    .card {
+      background: rgba(17,26,46,0.82);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 14px 40px var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .question {
+      text-align: center;
+      font-size: clamp(34px, 7vw, 54px);
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      margin: 8px 0 14px;
+    }
+
+    .sub {
+      text-align: center;
+      color: var(--muted);
+      margin-top: -4px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    button.choice, button.primary, button.secondary {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--btn);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 14px 14px;
+      font-size: 20px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button.choice:active, button.primary:active, button.secondary:active { transform: scale(0.99); }
+    button.choice:hover, button.primary:hover, button.secondary:hover { background: var(--btnHover); }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 12px;
+    }
+    button.primary {
+      background: rgba(45,212,191,0.18);
+      border-color: rgba(45,212,191,0.35);
+    }
+    button.primary:hover { background: rgba(45,212,191,0.25); }
+
+    button.secondary {
+      background: rgba(159,176,208,0.12);
+      border-color: rgba(159,176,208,0.25);
+      font-size: 16px;
+      padding: 12px 14px;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding-bottom: 2px;
+    }
+
+    .hidden { display: none !important; }
+
+    .flash-good { color: var(--good); font-weight: 800; }
+    .flash-bad { color: var(--bad); font-weight: 800; }
+
+    /* Streak indicator */
+    .streak {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--warn);
+      font-weight: 700;
+    }
+    .streak.hidden { display: none; }
+
+    /* Stats page styles */
+    .stats-section {
+      margin-top: 14px;
+    }
+    .stats-section h3 {
+      font-size: 14px;
+      color: var(--muted);
+      margin: 0 0 10px 0;
+      font-weight: 600;
+    }
+    .attempt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .attempt-row .date { color: var(--muted); font-size: 13px; }
+    .attempt-row .score { font-weight: 700; font-size: 16px; }
+    .attempt-row .details { font-size: 12px; color: var(--muted); }
+
+    .trouble-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: rgba(251,113,133,0.1);
+      border: 1px solid rgba(251,113,133,0.2);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .trouble-row .fact { font-weight: 700; font-size: 16px; }
+    .trouble-row .stat { font-size: 13px; color: var(--bad); }
+
+    .no-data {
+      text-align: center;
+      color: var(--muted);
+      padding: 20px;
+      font-size: 14px;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .tab-bar button {
+      flex: 1;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .tab-bar button.active {
+      background: rgba(45,212,191,0.15);
+      border-color: rgba(45,212,191,0.3);
+      color: var(--good);
+    }
+    .tab-bar button:hover:not(.active) {
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* Time mode selector */
+    .time-modes {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .time-modes button {
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .time-modes button.active {
+      background: rgba(45,212,191,0.15);
+      border-color: rgba(45,212,191,0.3);
+      color: var(--good);
+    }
+
+    @media (min-width: 640px) {
+      .grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="application" aria-label="Times table game">
+    <div class="topbar">
+      <div class="pill" aria-live="polite">
+        <div>
+          <div class="label">Time left</div>
+          <div class="value" id="timeLeft">1:00</div>
+        </div>
+        <div style="text-align:right">
+          <div class="label">Round</div>
+          <div class="value" id="round">0</div>
+        </div>
+      </div>
+      <div class="pill" aria-live="polite">
+        <div>
+          <div class="label">Score</div>
+          <div class="value"><span id="score">0</span> <span class="streak hidden" id="streak"></span></div>
+        </div>
+        <div style="text-align:right">
+          <div class="label">Best</div>
+          <div class="value" id="best">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="gameCard">
+      <div class="question" id="question">Press Start</div>
+      <div class="sub" id="status">Answer as many as you can!</div>
+
+      <div class="time-modes" id="timeModes">
+        <button data-time="30">30s</button>
+        <button data-time="60" class="active">1 min</button>
+        <button data-time="120">2 min</button>
+      </div>
+
+      <div class="grid" id="choices"></div>
+
+      <div class="controls">
+        <button class="primary" id="startBtn">Start</button>
+        <button class="secondary" id="restartBtn" disabled>Stop</button>
+        <button class="secondary" id="settingsBtn">Settings</button>
+        <button class="secondary" id="statsBtn">Stats</button>
+      </div>
+    </div>
+
+    <div class="card hidden" id="settingsCard">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div style="font-size:18px; font-weight:900;">Settings</div>
+        <button class="secondary" id="closeSettingsBtn">Close</button>
+      </div>
+
+      <div style="display:grid; gap:12px; margin-top:12px;">
+        <label style="display:grid; gap:6px;">
+          <span style="color:var(--muted); font-size:13px;">Tables (choose range)</span>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="pill" style="box-shadow:none; background:rgba(255,255,255,0.04);">
+              <div>
+                <div class="label">Min</div>
+                <div class="value">
+                  <select id="minTable" style="font-size:16px; padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:#0f1830; color:var(--text);"></select>
+                </div>
+              </div>
+            </div>
+            <div class="pill" style="box-shadow:none; background:rgba(255,255,255,0.04);">
+              <div>
+                <div class="label">Max</div>
+                <div class="value">
+                  <select id="maxTable" style="font-size:16px; padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:#0f1830; color:var(--text);"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </label>
+
+        <label style="display:grid; gap:6px;">
+          <span style="color:var(--muted); font-size:13px;">Multipliers (numbers you multiply by)</span>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="pill" style="box-shadow:none; background:rgba(255,255,255,0.04);">
+              <div>
+                <div class="label">Min</div>
+                <div class="value">
+                  <select id="minMul" style="font-size:16px; padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:#0f1830; color:var(--text);"></select>
+                </div>
+              </div>
+            </div>
+            <div class="pill" style="box-shadow:none; background:rgba(255,255,255,0.04);">
+              <div>
+                <div class="label">Max</div>
+                <div class="value">
+                  <select id="maxMul" style="font-size:16px; padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:#0f1830; color:var(--text);"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </label>
+
+        <button class="secondary" id="clearDataBtn" style="margin-top:10px; color:var(--bad); border-color:rgba(251,113,133,0.3);">Clear All Data</button>
+
+        <div class="footer">
+          Tip: for an 8 year old, try tables 2-12 and multipliers 2-12.
+        </div>
+      </div>
+    </div>
+
+    <div class="card hidden" id="statsCard">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div style="font-size:18px; font-weight:900;">Stats</div>
+        <button class="secondary" id="closeStatsBtn">Close</button>
+      </div>
+
+      <div class="tab-bar">
+        <button class="active" data-tab="history">Recent Games</button>
+        <button data-tab="trouble">Trouble Spots</button>
+      </div>
+
+      <div id="historyTab">
+        <div class="stats-section">
+          <h3>Last 5 Attempts</h3>
+          <div id="historyList"></div>
+        </div>
+      </div>
+
+      <div id="troubleTab" class="hidden">
+        <div class="stats-section">
+          <h3>Most Missed (from last 5 games)</h3>
+          <div id="troubleList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">Tap answers. Works offline once saved.</div>
+  </div>
+
+  <script>
+    // ---------- Utilities ----------
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // ---------- State ----------
+    const state = {
+      running: false,
+      durationSec: 60,
+      timeLeft: 60,
+      score: 0,
+      round: 0,
+      streak: 0,
+      a: 0,
+      b: 0,
+      correct: 0,
+      best: 0,
+      timerId: null,
+      // Current game results
+      currentResults: [],
+      // Settings
+      minTable: 2,
+      maxTable: 12,
+      minMul: 2,
+      maxMul: 12,
+    };
+
+    // ---------- Storage Keys ----------
+    const BEST_KEY = "tt_best_score_v2";
+    const HISTORY_KEY = "tt_history_v1";
+    const SETTINGS_KEY = "tt_settings_v1";
+
+    // ---------- Elements ----------
+    const elQuestion = document.getElementById("question");
+    const elStatus = document.getElementById("status");
+    const elChoices = document.getElementById("choices");
+    const elTimeLeft = document.getElementById("timeLeft");
+    const elScore = document.getElementById("score");
+    const elRound = document.getElementById("round");
+    const elBest = document.getElementById("best");
+    const elStreak = document.getElementById("streak");
+
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const settingsBtn = document.getElementById("settingsBtn");
+    const statsBtn = document.getElementById("statsBtn");
+
+    const gameCard = document.getElementById("gameCard");
+    const settingsCard = document.getElementById("settingsCard");
+    const statsCard = document.getElementById("statsCard");
+    const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+    const closeStatsBtn = document.getElementById("closeStatsBtn");
+    const clearDataBtn = document.getElementById("clearDataBtn");
+
+    const minTableSel = document.getElementById("minTable");
+    const maxTableSel = document.getElementById("maxTable");
+    const minMulSel = document.getElementById("minMul");
+    const maxMulSel = document.getElementById("maxMul");
+
+    const timeModes = document.getElementById("timeModes");
+    const historyList = document.getElementById("historyList");
+    const troubleList = document.getElementById("troubleList");
+    const historyTab = document.getElementById("historyTab");
+    const troubleTab = document.getElementById("troubleTab");
+
+    // ---------- History Storage ----------
+    function loadHistory() {
+      try {
+        const data = localStorage.getItem(HISTORY_KEY);
+        return data ? JSON.parse(data) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveHistory(history) {
+      // Keep only last 5
+      const trimmed = history.slice(-5);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+    }
+
+    function addGameToHistory(gameData) {
+      const history = loadHistory();
+      history.push(gameData);
+      saveHistory(history);
+    }
+
+    // ---------- Settings Storage ----------
+    function loadSettings() {
+      try {
+        const data = localStorage.getItem(SETTINGS_KEY);
+        if (data) {
+          const s = JSON.parse(data);
+          state.minTable = s.minTable ?? 2;
+          state.maxTable = s.maxTable ?? 12;
+          state.minMul = s.minMul ?? 2;
+          state.maxMul = s.maxMul ?? 12;
+          state.durationSec = s.durationSec ?? 60;
+        }
+      } catch {}
+    }
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        minTable: state.minTable,
+        maxTable: state.maxTable,
+        minMul: state.minMul,
+        maxMul: state.maxMul,
+        durationSec: state.durationSec,
+      }));
+    }
+
+    // ---------- Best score ----------
+    function loadBest() {
+      const saved = Number(localStorage.getItem(BEST_KEY));
+      state.best = Number.isFinite(saved) ? saved : 0;
+      elBest.textContent = String(state.best);
+    }
+    function saveBestIfNeeded() {
+      if (state.score > state.best) {
+        state.best = state.score;
+        localStorage.setItem(BEST_KEY, String(state.best));
+        elBest.textContent = String(state.best);
+      }
+    }
+
+    // ---------- UI updates ----------
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2, "0")}`;
+    }
+    function setTime(sec) {
+      elTimeLeft.textContent = formatTime(sec);
+    }
+    function setStatus(msg, cls) {
+      elStatus.className = "sub";
+      if (cls) elStatus.classList.add(cls);
+      elStatus.textContent = msg;
+    }
+    function setScore(val) { elScore.textContent = String(val); }
+    function setRound(val) { elRound.textContent = String(val); }
+
+    function updateStreak() {
+      if (state.streak >= 3) {
+        elStreak.textContent = `${state.streak}x`;
+        elStreak.classList.remove("hidden");
+      } else {
+        elStreak.classList.add("hidden");
+      }
+    }
+
+    function setButtons() {
+      startBtn.disabled = state.running;
+      restartBtn.disabled = !state.running;
+      settingsBtn.disabled = state.running;
+      statsBtn.disabled = state.running;
+      timeModes.style.display = state.running ? "none" : "flex";
+    }
+
+    // ---------- Settings ----------
+    function fillSelect(sel, min, max, value) {
+      sel.innerHTML = "";
+      for (let i = min; i <= max; i++) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = String(i);
+        if (i === value) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    }
+
+    function initSettingsUI() {
+      fillSelect(minTableSel, 1, 20, state.minTable);
+      fillSelect(maxTableSel, 1, 20, state.maxTable);
+      fillSelect(minMulSel, 1, 20, state.minMul);
+      fillSelect(maxMulSel, 1, 20, state.maxMul);
+
+      function clampRanges() {
+        const minT = Number(minTableSel.value);
+        const maxT = Number(maxTableSel.value);
+        const minM = Number(minMulSel.value);
+        const maxM = Number(maxMulSel.value);
+
+        if (minT > maxT) maxTableSel.value = String(minT);
+        if (minM > maxM) maxMulSel.value = String(minM);
+
+        state.minTable = Number(minTableSel.value);
+        state.maxTable = Number(maxTableSel.value);
+        state.minMul = Number(minMulSel.value);
+        state.maxMul = Number(maxMulSel.value);
+        saveSettings();
+      }
+
+      minTableSel.addEventListener("change", clampRanges);
+      maxTableSel.addEventListener("change", clampRanges);
+      minMulSel.addEventListener("change", clampRanges);
+      maxMulSel.addEventListener("change", clampRanges);
+    }
+
+    function initTimeModes() {
+      const btns = timeModes.querySelectorAll("button");
+      btns.forEach(btn => {
+        if (Number(btn.dataset.time) === state.durationSec) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+        btn.addEventListener("click", () => {
+          btns.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.durationSec = Number(btn.dataset.time);
+          state.timeLeft = state.durationSec;
+          setTime(state.timeLeft);
+          saveSettings();
+        });
+      });
+    }
+
+    function openSettings() {
+      settingsCard.classList.remove("hidden");
+      statsCard.classList.add("hidden");
+      settingsCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function closeSettings() {
+      settingsCard.classList.add("hidden");
+      gameCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // ---------- Stats Page ----------
+    function openStats() {
+      statsCard.classList.remove("hidden");
+      settingsCard.classList.add("hidden");
+      renderStats();
+      statsCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function closeStats() {
+      statsCard.classList.add("hidden");
+      gameCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function renderStats() {
+      const history = loadHistory();
+
+      // Render history
+      if (history.length === 0) {
+        historyList.innerHTML = '<div class="no-data">No games played yet. Start playing!</div>';
+      } else {
+        historyList.innerHTML = history.slice().reverse().map(game => {
+          const date = new Date(game.timestamp);
+          const dateStr = date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+          const timeStr = date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+          const correct = game.results.filter(r => r.correct).length;
+          const total = game.results.length;
+          const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+          return `
+            <div class="attempt-row">
+              <div>
+                <div class="date">${dateStr} ${timeStr}</div>
+                <div class="details">${game.duration}s | Tables ${game.settings.minTable}-${game.settings.maxTable}</div>
+              </div>
+              <div style="text-align:right">
+                <div class="score">${game.score}</div>
+                <div class="details">${correct}/${total} (${pct}%)</div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Analyze trouble spots
+      const mistakes = {};
+      history.forEach(game => {
+        game.results.forEach(r => {
+          const key = `${r.a}x${r.b}`;
+          if (!mistakes[key]) {
+            mistakes[key] = { a: r.a, b: r.b, wrong: 0, total: 0 };
+          }
+          mistakes[key].total++;
+          if (!r.correct) mistakes[key].wrong++;
+        });
+      });
+
+      const troubleSpots = Object.values(mistakes)
+        .filter(m => m.wrong > 0)
+        .sort((a, b) => {
+          // Sort by error rate, then by total wrong
+          const rateA = a.wrong / a.total;
+          const rateB = b.wrong / b.total;
+          if (rateB !== rateA) return rateB - rateA;
+          return b.wrong - a.wrong;
+        })
+        .slice(0, 8);
+
+      if (troubleSpots.length === 0) {
+        troubleList.innerHTML = '<div class="no-data">No mistakes found. Keep it up!</div>';
+      } else {
+        troubleList.innerHTML = troubleSpots.map(m => {
+          const pct = Math.round((m.wrong / m.total) * 100);
+          return `
+            <div class="trouble-row">
+              <div class="fact">${m.a} x ${m.b} = ${m.a * m.b}</div>
+              <div class="stat">${m.wrong}/${m.total} wrong (${pct}%)</div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    // Tab switching
+    document.querySelectorAll(".tab-bar button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-bar button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        if (btn.dataset.tab === "history") {
+          historyTab.classList.remove("hidden");
+          troubleTab.classList.add("hidden");
+        } else {
+          historyTab.classList.add("hidden");
+          troubleTab.classList.remove("hidden");
+        }
+      });
+    });
+
+    // ---------- Tricky Answer Generation ----------
+    function generateTrickyChoices(a, b, correct) {
+      const answers = new Set();
+      answers.add(correct);
+
+      // Common mistake patterns - all designed to be plausible
+      const patterns = [
+        // Off by one (very common mistake)
+        () => correct + 1,
+        () => correct - 1,
+        // Off by the multiplier (forgot to add one group)
+        () => correct + a,
+        () => correct - a,
+        () => correct + b,
+        () => correct - b,
+        // Adjacent table entries
+        () => (a + 1) * b,
+        () => (a - 1) * b,
+        () => a * (b + 1),
+        () => a * (b - 1),
+        // Digit swap for 2-digit answers (e.g., 54 vs 45)
+        () => {
+          if (correct >= 10 && correct < 100) {
+            const tens = Math.floor(correct / 10);
+            const ones = correct % 10;
+            if (tens !== ones) return ones * 10 + tens;
+          }
+          return correct + randInt(2, 5);
+        },
+        // Common confusions: add instead of multiply
+        () => a + b + randInt(5, 15),
+        // Near miss: within 10% but not exact
+        () => Math.round(correct * (1 + (randInt(1, 2) * 0.1 * (Math.random() > 0.5 ? 1 : -1)))),
+        // Same tens digit, different ones
+        () => {
+          if (correct >= 10) {
+            const tens = Math.floor(correct / 10) * 10;
+            return tens + randInt(0, 9);
+          }
+          return correct + randInt(2, 8);
+        },
+      ];
+
+      // Shuffle patterns and try to fill 6 choices
+      const shuffledPatterns = shuffle([...patterns]);
+      let attempts = 0;
+      const maxAttempts = 50;
+
+      while (answers.size < 6 && attempts < maxAttempts) {
+        attempts++;
+        const patternFn = shuffledPatterns[attempts % shuffledPatterns.length];
+        const candidate = patternFn();
+
+        // Validate: must be positive, different from correct, and in reasonable range
+        if (
+          candidate > 0 &&
+          candidate !== correct &&
+          candidate <= Math.max(correct * 1.5, correct + 20) &&
+          candidate >= Math.max(1, correct * 0.5, correct - 20)
+        ) {
+          answers.add(candidate);
+        }
+      }
+
+      // If still not enough, add close values
+      let offset = 2;
+      while (answers.size < 6) {
+        const candidate = correct + offset;
+        if (candidate > 0) answers.add(candidate);
+        offset = offset > 0 ? -offset : -offset + 1;
+      }
+
+      return shuffle([...answers].slice(0, 6));
+    }
+
+    // ---------- Game logic ----------
+    function makeQuestion() {
+      state.a = randInt(state.minTable, state.maxTable);
+      state.b = randInt(state.minMul, state.maxMul);
+      state.correct = state.a * state.b;
+      elQuestion.textContent = `${state.a} x ${state.b} = ?`;
+    }
+
+    function makeChoices() {
+      const choices = generateTrickyChoices(state.a, state.b, state.correct);
+
+      elChoices.innerHTML = "";
+      choices.forEach((val) => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+        btn.type = "button";
+        btn.textContent = String(val);
+        btn.addEventListener("click", () => handleAnswer(val));
+        elChoices.appendChild(btn);
+      });
+    }
+
+    function nextRound() {
+      state.round += 1;
+      setRound(state.round);
+      makeQuestion();
+      makeChoices();
+    }
+
+    function handleAnswer(val) {
+      if (!state.running) return;
+
+      const isCorrect = val === state.correct;
+
+      // Record result
+      state.currentResults.push({
+        a: state.a,
+        b: state.b,
+        answer: val,
+        correctAnswer: state.correct,
+        correct: isCorrect,
+      });
+
+      if (isCorrect) {
+        state.score += 1;
+        state.streak += 1;
+        setScore(state.score);
+        updateStreak();
+        if (state.streak >= 5) {
+          setStatus(`${state.streak} in a row!`, "flash-good");
+        } else {
+          setStatus("Nice!", "flash-good");
+        }
+      } else {
+        state.streak = 0;
+        updateStreak();
+        setStatus(`Oops! It was ${state.correct}.`, "flash-bad");
+      }
+
+      nextRound();
+    }
+
+    function tick() {
+      state.timeLeft -= 1;
+      setTime(state.timeLeft);
+
+      if (state.timeLeft <= 0) {
+        endGame();
+      }
+    }
+
+    function startGame() {
+      state.running = true;
+      state.score = 0;
+      state.round = 0;
+      state.streak = 0;
+      state.timeLeft = state.durationSec;
+      state.currentResults = [];
+
+      setScore(state.score);
+      setRound(state.round);
+      setTime(state.timeLeft);
+      setStatus("Go go go!", "");
+      updateStreak();
+
+      setButtons();
+      closeSettings();
+      closeStats();
+
+      nextRound();
+
+      clearInterval(state.timerId);
+      state.timerId = setInterval(tick, 1000);
+    }
+
+    function endGame() {
+      state.running = false;
+      clearInterval(state.timerId);
+      state.timerId = null;
+
+      // Save game to history
+      addGameToHistory({
+        timestamp: Date.now(),
+        score: state.score,
+        duration: state.durationSec,
+        settings: {
+          minTable: state.minTable,
+          maxTable: state.maxTable,
+          minMul: state.minMul,
+          maxMul: state.maxMul,
+        },
+        results: state.currentResults,
+      });
+
+      saveBestIfNeeded();
+      setButtons();
+
+      const correct = state.currentResults.filter(r => r.correct).length;
+      const total = state.currentResults.length;
+      elQuestion.textContent = `Done! ${state.score}`;
+      setStatus(`${correct}/${total} correct. Press Start to play again.`, "");
+      elChoices.innerHTML = "";
+      state.streak = 0;
+      updateStreak();
+    }
+
+    // ---------- Wire up ----------
+    startBtn.addEventListener("click", startGame);
+    restartBtn.addEventListener("click", endGame);
+    settingsBtn.addEventListener("click", openSettings);
+    closeSettingsBtn.addEventListener("click", closeSettings);
+    statsBtn.addEventListener("click", openStats);
+    closeStatsBtn.addEventListener("click", closeStats);
+
+    clearDataBtn.addEventListener("click", () => {
+      if (confirm("Clear all game history and best scores?")) {
+        localStorage.removeItem(HISTORY_KEY);
+        localStorage.removeItem(BEST_KEY);
+        state.best = 0;
+        elBest.textContent = "0";
+        renderStats();
+        alert("Data cleared!");
+      }
+    });
+
+    // Prevent accidental double-tap zoom on iOS buttons
+    document.addEventListener("touchend", (e) => {
+      if (e.target instanceof HTMLButtonElement) e.preventDefault();
+    }, { passive: false });
+
+    // Init
+    loadSettings();
+    loadBest();
+    initSettingsUI();
+    initTimeModes();
+    state.timeLeft = state.durationSec;
+    setTime(state.timeLeft);
+    setButtons();
+  </script>
+</body>
+</html>
